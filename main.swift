@@ -1,22 +1,13 @@
 import Foundation;
 
-//data store
-struct Queue{
-    var items:[Any] = []
-    var count:Int {items.count}
-
-    mutating func enqueue(item:Any){
-        items.append(item)
-    }
+//class
+class Company{
+    var employees = Store<Employee>()
+    var countEmployee:Int{employees.count}
     
-    mutating func dequeue()->Any{
-        items.removeFirst()
-    }
-
 }
 
 
-//class
 class Person{
     var name:String
     var age:Int?
@@ -116,5 +107,53 @@ class Product{
         }
         self.quantity -= quantity
     }
+
 }
 
+//end class & struct
+
+//data store
+struct Store<T>{
+    var items:[T] = []
+    var count:Int {items.count}
+
+    mutating func add(item:T){
+        items.append(item)
+    }
+    
+    // mutating func remove()->T{
+    //     return items
+    // }
+
+    func show(){
+        for item in items{
+            if let product = item as? Product{
+                print(product.name,product.quantity)
+            }
+        }
+    }
+
+    func searchID(id:Int)->T?{
+        for item in items{
+            if let product = item as? Product,product.product_id == id{
+                return product as? T
+            }else if let order = item as? Order,order.order_id == id{
+                return order as? T
+            }
+        }
+        return nil
+    }
+   
+
+}
+
+//product
+var products = Store<Product>()
+products.add(item: Product(name:"product1",quantity:10,price:10))
+products.add(item: Product(name: "product2", quantity: 20, price: 50))
+
+//orders
+var orders = Store<Order>()
+// orders.add(item: ())
+
+//end data store
