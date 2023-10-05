@@ -2,9 +2,17 @@ import Foundation;
 
 //class
 class Company{
+    static var id = 0
     var employees = Store<Employee>()
     var countEmployee:Int{employees.count}
-    
+
+    func addEmployee(employee:Employee){
+        employees.add(item: employee)
+    }
+
+    func show(){
+        employees.show()
+    }
 }
 
 
@@ -20,13 +28,12 @@ class Person{
 
 
 class Employee:Person{
-    static private var count:Int = 0
     var id:Int
     var salary:Double
 
     init(name:String,age:Int?,salary:Double){
-        Employee.count += 1
-        self.id = Employee.count
+        Company.id += 1
+        self.id = Company.id
         self.salary = salary
         super.init(name: name, age: age)
     }
@@ -129,6 +136,10 @@ struct Store<T>{
         for item in items{
             if let product = item as? Product{
                 print(product.name,product.quantity)
+            }else if let order = item as? Order{
+                print(order.cust_id)
+            }else if let employee = item as? Employee{
+                print(employee.id)
             }
         }
     }
@@ -139,6 +150,8 @@ struct Store<T>{
                 return product as? T
             }else if let order = item as? Order,order.order_id == id{
                 return order as? T
+            }else if let employee = item as? Employee,employee.id == id{
+                return employee as? T
             }
         }
         return nil
@@ -155,5 +168,13 @@ products.add(item: Product(name: "product2", quantity: 20, price: 50))
 //orders
 var orders = Store<Order>()
 // orders.add(item: ())
+
+
+
+//company
+let company = Company()
+company.addEmployee(employee: Seller(name: "seller1", age: 20, salary: 30009))
+company.addEmployee(employee: Employee(name: "Employee1", age: 30, salary: 50000))
+company.show()
 
 //end data store
