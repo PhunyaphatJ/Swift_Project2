@@ -84,6 +84,37 @@ struct Order{
     static private var count = 0
     var order_id:Int
     var cust_id:Int
-    var orderDetails
+    var orderDetails:[(name:String,quantity:Int,price:Double)] = []
     
 }
+
+class Product{
+    static private var count = 0
+    let product_id:Int
+    var name:String
+    var quantity:Int
+    var price:Double
+
+    init(name:String,quantity:Int,price:Double){
+        Product.count += 1
+        self.product_id = Product.count
+        self.name = name
+        self.quantity = quantity
+        self.price = price
+    }
+
+    func add(quantity:Int){
+        if quantity < 0{
+            return
+        }
+        self.quantity += quantity
+    }
+
+    func reduce(quantity:Int){
+        if quantity < 0{
+            return
+        }
+        self.quantity -= quantity
+    }
+}
+
