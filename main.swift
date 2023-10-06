@@ -101,7 +101,7 @@ class Order{
     static private var count = 0
     var order_id:Int
     var cust_id:Int
-    var orderDetails:[(id:Int,name:String,quantity:Int,price:Double)] = []
+    var orderDetails:[(product:Product,quantity:Int)] = []
 
     init(cust_id:Int){
         Order.count += 1
@@ -109,8 +109,20 @@ class Order{
         self.cust_id = cust_id
     }
 
-    func buy(item:(id:Int,name:String,quantity:Int,price:Double)){
-        orderDetails.append(item)
+    func buy(item:Product,quantity:Int){
+        if let index = orderDetails.firstIndex(where: {$0.product.product_id == item.product_id}){
+            orderDetails[index].quantity += item.quantity
+            item.quantity -= quantity
+        }else{
+            orderDetails.append((product:item,quantity:quantity))
+            item.quantity -= quantity
+        }
+    }
+
+    func show(){
+        for item in orderDetails{
+            print("id: \(item.product.product_id) quantity : \(item.quantity)")
+        }
     }
     
 }
@@ -166,7 +178,8 @@ struct Store<T>{
             if let product = item as? Product{
                 print(product.name,product.quantity)
             }else if let order = item as? Order{
-                print(order.cust_id)
+                print("cust_ID ",order.cust_id,"order_id ",order.order_id)
+                order.show()
             }else if let employee = item as? Employee{
                 print(employee.id)
             }
@@ -181,6 +194,8 @@ struct Store<T>{
                 return order as? T
             }else if let employee = item as? Employee,employee.id == id{
                 return employee as? T
+            }else if let customer = item as? Customer,customer.cust_id == id{
+                return customer as? T
             }
         }
         return nil
@@ -189,14 +204,65 @@ struct Store<T>{
 
 }
 
+
 //product
 var products = Store<Product>()
 products.add(item: Product(name:"product1",quantity:10,price:10))
 products.add(item: Product(name: "product2", quantity: 20, price: 50))
 
+//customers
+var customers = Store<Customer>()
+customers.add(item: Customer(name: "Customer1", age: 20))
+
+
 //orders
 var orders = Store<Order>()
-// orders.add(item: ())
+
+//test
+// Test loop
+print(customers.searchID(id: 1))
+print(products.searchID(id: 1))
+print(products.searchID(id: 3))
+buy: while true {
+    print("enter y/n : ")
+    if let input = readLine() {
+        switch input {
+        case "Y", "y":
+            print("Enter customer ID:")
+            if let custID = Int(readLine()!) {
+                if let customer = customers.searchID(id: custID) {
+                    print("Enter product ID:")
+                    if let productID = Int(readLine()!) {
+                        if let product = products.searchID(id: productID) {
+                            let order = Order(cust_id: customer.cust_id)
+                            order.buy(item: product, quantity: 5)
+                            orders.add(item: order)
+                        } else {
+                            print("Product not found")
+                        }
+                    } else {
+                        print("Invalid input for product ID")
+                    }
+                } else {
+                    print("Customer not found")
+                }
+            } else {
+                print("Invalid input for customer ID")
+            }
+        case "N", "n":
+            break buy
+        default:
+            print("wrong")
+        }
+    } else {
+        print("wrong")
+    }
+}
+
+
+//end test
+orders.show()
+
 
 
 
