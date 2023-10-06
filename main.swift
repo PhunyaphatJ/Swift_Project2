@@ -87,11 +87,13 @@ class Account:Employee{
 class Customer:Person{
     static private var count = 0
     let cust_id:Int
+    var password:String
     // var orders:[Orders] = []
 
-    init(name:String,age:Int){
+    init(name:String,age:Int,password:String){
         Customer.count += 1
         cust_id = Customer.count
+        self.password = password
         super.init(name: name, age: age)
     }
     
@@ -101,7 +103,12 @@ class Order{
     static private var count = 0
     var order_id:Int
     var cust_id:Int
-    var orderDetails:[(product:Product,quantity:Int)] = []
+    var orderDetails:[(product:Product,quantity:Int,total:Double)] = []
+    var total:Double{
+        return orderDetails.reduce(0) {(result,item)in
+            return result + (Double(item.quantity) * item.product.price)
+        }
+}
 
     init(cust_id:Int){
         Order.count += 1
@@ -114,15 +121,16 @@ class Order{
             orderDetails[index].quantity += item.quantity
             item.quantity -= quantity
         }else{
-            orderDetails.append((product:item,quantity:quantity))
+            orderDetails.append((product:item,quantity:quantity,total:item.price * Double(quantity)))
             item.quantity -= quantity
         }
     }
 
     func show(){
         for item in orderDetails{
-            print("id: \(item.product.product_id) quantity : \(item.quantity)")
+            print("id: \(item.product.product_id) quantity : \(item.quantity) price: \(item.total)")
         }
+        print("total: \(total)")
     }
     
 }
@@ -133,6 +141,7 @@ class Product{
     var name:String
     var quantity:Int
     var price:Double
+
 
     init(name:String,quantity:Int,price:Double){
         Product.count += 1
@@ -154,6 +163,13 @@ class Product{
             return
         }
         self.quantity -= quantity
+    }
+
+    func checkQuantity()->Bool{
+        if quantity == 0{
+            return false
+        }
+        return true
     }
 
 }
@@ -180,6 +196,7 @@ struct Store<T>{
             }else if let order = item as? Order{
                 print("cust_ID ",order.cust_id,"order_id ",order.order_id)
                 order.show()
+                return
             }else if let employee = item as? Employee{
                 print(employee.id)
             }
@@ -202,6 +219,24 @@ struct Store<T>{
     }
    
 
+   func searchName(name:String) ->T?{
+        for item in items{
+            if let employeeName = item as? Employee,employeeName.name == name{
+                return employeeName as? T
+            }else if let custName = item as? Customer,custName.name == name{
+                return custName as? T
+            }
+        }
+        return nil
+   }
+
+   func checkPassword(user:T,pass:String) -> Bool{
+        if let customer = user as? Customer,customer.password == pass{
+            return true
+        }
+        return false
+   }
+
 }
 
 
@@ -212,43 +247,116 @@ products.add(item: Product(name: "product2", quantity: 20, price: 50))
 
 //customers
 var customers = Store<Customer>()
-customers.add(item: Customer(name: "Customer1", age: 20))
-
+customers.add(item: Customer(name: "Customer1", age: 20,password: "1234"))
+customers.add(item: Customer(name: "Customer2", age: 22,password: "555"))
 
 //orders
 var orders = Store<Order>()
 
 //test
 // Test loop
-print(customers.searchID(id: 1))
-print(products.searchID(id: 1))
-print(products.searchID(id: 3))
-buy: while true {
+
+
+//end test
+
+//company
+let company = Company()
+company.addEmployee(employee: Seller(name: "Seller Manger", age: 30, salary: 50000,isManager: true))
+company.addEmployee(employee: Seller(name: "seller1", age: 30, salary: 25000,isManager: false))
+company.show()
+
+//end data store
+
+
+//func 
+func pauseFunc(){
+    print("Enter someThing....",terminator:"")
+    _ = readLine()
+}
+
+var customerNow:Customer?
+var employeeNow:Employee?
+
+func loginCustomer(){
+     while true{
+        system("clear")
+        print("+-----------------+")
+        print("|      Login      |")
+        print("+-----------------+")
+        print("Enter User: ",terminator: "")
+        if let userName = readLine(){
+            if let user = customers.searchName(name: userName){
+                print("Enter password:",terminator: "")
+                if let password = readLine(){
+                    if customers.checkPassword(user: user, pass: password){
+                        customerNow = user
+                        break
+                    }else{
+                        print("incorrect password")
+                        pauseFunc()
+                    }
+                }
+            }else{
+                print("incorrect user")
+                pauseFunc()
+            }
+        }
+     }
+}
+
+func logoutCustomer(){
+    customerNow = nil
+}
+
+
+func shopping(){
+    buy: while true {
     print("enter y/n : ")
     if let input = readLine() {
         switch input {
         case "Y", "y":
-            print("Enter customer ID:")
-            if let custID = Int(readLine()!) {
-                if let customer = customers.searchID(id: custID) {
-                    print("Enter product ID:")
-                    if let productID = Int(readLine()!) {
-                        if let product = products.searchID(id: productID) {
-                            let order = Order(cust_id: customer.cust_id)
-                            order.buy(item: product, quantity: 5)
-                            orders.add(item: order)
+                    let order = Order(cust_id: customerNow?.cust_id ?? 0)
+                    loopBuy:repeat{
+                        print("Enter product ID:")
+                        if let productID = Int(readLine()!) {
+                            if let product = products.searchID(id: productID) {
+                                if product.checkQuantity(){
+                                    print(product.quantity)
+                                    print("Enter Quantity: ")
+                                    if let quantity = Int(readLine()!){
+                                        if quantity <= product.quantity{
+                                            order.buy(item: product, quantity: quantity)
+                                            orders.add(item: order)
+                                        }else{
+                                            print("input quantity > prodcut quantity")
+                                        }
+                                    }else{
+                                        print("worng input")
+                                    }
+                                }else{
+                                    print("product quantity is empty")
+                                }
+                            } else {
+                                print("Product not found")
+                            }
                         } else {
-                            print("Product not found")
+                            print("Invalid input for product ID")
                         }
-                    } else {
-                        print("Invalid input for product ID")
-                    }
-                } else {
-                    print("Customer not found")
-                }
-            } else {
-                print("Invalid input for customer ID")
-            }
+                        checkCon:while true{
+                            print("Continue Shopping? Y/N: ")
+                            if let continueShop = readLine(){
+                                switch continueShop {
+                                case "y","Y":
+                                    continue loopBuy
+                                case "n","N":
+                                    break buy
+                                default:
+                                    print("wrong input")
+                                    continue checkCon
+                                }
+                            }
+                        }
+                    }while true
         case "N", "n":
             break buy
         default:
@@ -258,18 +366,13 @@ buy: while true {
         print("wrong")
     }
 }
+    orders.show()
+}
 
 
-//end test
-orders.show()
+func main(){
+    loginCustomer()
+    shopping()
+}
 
-
-
-
-//company
-let company = Company()
-company.addEmployee(employee: Seller(name: "Seller Manger", age: 30, salary: 50000,isManager: true))
-company.addEmployee(employee: Seller(name: "seller1", age: 30, salary: 25000,isManager: false))
-company.show()
-
-//end data store
+main()
