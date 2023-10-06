@@ -10,6 +10,10 @@ class Company{
         employees.add(item: employee)
     }
 
+    func search(id:Int)->Employee?{
+        return employees.searchID(id: id)
+    }
+
     func show(){
         employees.show()
     }
@@ -30,17 +34,19 @@ class Person{
 class Employee:Person{
     var id:Int
     var salary:Double
+    var isManager:Bool
 
-    init(name:String,age:Int?,salary:Double){
+    init(name:String,age:Int?,salary:Double,isManager:Bool){
         Company.id += 1
         self.id = Company.id
         self.salary = salary
+        self.isManager = isManager
         super.init(name: name, age: age)
     }
 
 
     convenience init(name:String,salary:Double){
-        self.init(name:name,age:nil,salary:salary)
+        self.init(name:name,age:nil,salary:salary,isManager: false)
     }
 
     func show(){
@@ -48,21 +54,34 @@ class Employee:Person{
     }
 }
 
-// class Programmer:Employee{
-//     static private var count:Int = 0 
-    
-// }
-
 class Seller:Employee{
-
+    let departmentID = 10
     var customers:[Customer] = []
 
 
-    override init(name:String,age:Int?,salary:Double){
-        super.init(name: name, age: age, salary: salary)
+    override init(name:String,age:Int?,salary:Double,isManager:Bool){
+        super.init(name: name, age: age, salary: salary,isManager: isManager)
     }
 
 }
+
+class IT:Employee{
+    let departmentID = 20
+
+    override init(name:String,age:Int?,salary:Double,isManager:Bool){
+        super.init(name: name, age: age, salary: salary, isManager: isManager)
+    }
+    
+}
+
+class Account:Employee{
+    let departmentID = 30
+
+    override init(name:String,age:Int?,salary:Double,isManager:Bool){
+        super.init(name: name, age: age, salary: salary, isManager: isManager)
+    }
+}
+
 
 
 class Customer:Person{
@@ -78,11 +97,21 @@ class Customer:Person{
     
 }
 
-struct Order{
+class Order{
     static private var count = 0
     var order_id:Int
     var cust_id:Int
-    var orderDetails:[(name:String,quantity:Int,price:Double)] = []
+    var orderDetails:[(id:Int,name:String,quantity:Int,price:Double)] = []
+
+    init(cust_id:Int){
+        Order.count += 1
+        self.order_id = Order.count
+        self.cust_id = cust_id
+    }
+
+    func buy(item:(id:Int,name:String,quantity:Int,price:Double)){
+        orderDetails.append(item)
+    }
     
 }
 
@@ -173,8 +202,8 @@ var orders = Store<Order>()
 
 //company
 let company = Company()
-company.addEmployee(employee: Seller(name: "seller1", age: 20, salary: 30009))
-company.addEmployee(employee: Employee(name: "Employee1", age: 30, salary: 50000))
+company.addEmployee(employee: Seller(name: "Seller Manger", age: 30, salary: 50000,isManager: true))
+company.addEmployee(employee: Seller(name: "seller1", age: 30, salary: 25000,isManager: false))
 company.show()
 
 //end data store
