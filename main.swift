@@ -96,6 +96,13 @@ class Customer:Person{
         self.password = password
         super.init(name: name, age: age)
     }
+
+     func checkPassword(pass:String) -> Bool{
+        if password == pass{
+            return true
+        }
+        return false
+   }
     
 }
 
@@ -124,6 +131,13 @@ class Order{
             orderDetails.append((product:item,quantity:quantity,total:item.price * Double(quantity)))
             item.quantity -= quantity
         }
+    }
+
+    func searchByCustomerID(id:Int) -> Order?{
+        if cust_id == id{
+            return self
+        }
+        return nil
     }
 
     func show(){
@@ -199,6 +213,8 @@ struct Store<T>{
                 return
             }else if let employee = item as? Employee{
                 print(employee.id)
+            }else if let customer = item as? Customer{
+                print("ID: \(customer.cust_id) Name: \(customer.name)")
             }
         }
     }
@@ -230,13 +246,6 @@ struct Store<T>{
         return nil
    }
 
-   func checkPassword(user:T,pass:String) -> Bool{
-        if let customer = user as? Customer,customer.password == pass{
-            return true
-        }
-        return false
-   }
-
 }
 
 
@@ -263,14 +272,13 @@ var orders = Store<Order>()
 let company = Company()
 company.addEmployee(employee: Seller(name: "Seller Manger", age: 30, salary: 50000,isManager: true))
 company.addEmployee(employee: Seller(name: "seller1", age: 30, salary: 25000,isManager: false))
-company.show()
 
 //end data store
 
 
 //func 
-func pauseFunc(){
-    print("Enter someThing....",terminator:"")
+func pauseFunc(text:String){
+    print(text,terminator:"")
     _ = readLine()
 }
 
@@ -278,6 +286,7 @@ var customerNow:Customer?
 var employeeNow:Employee?
 
 func loginCustomer(){
+    var counter = 0
      while true{
         system("clear")
         print("+-----------------+")
@@ -288,18 +297,21 @@ func loginCustomer(){
             if let user = customers.searchName(name: userName){
                 print("Enter password:",terminator: "")
                 if let password = readLine(){
-                    if customers.checkPassword(user: user, pass: password){
+                    if user.checkPassword(pass: password){
                         customerNow = user
+                        pauseFunc(text: "login successful")
                         break
                     }else{
-                        print("incorrect password")
-                        pauseFunc()
+                        pauseFunc(text: "incorrect password..")
                     }
                 }
             }else{
-                print("incorrect user")
-                pauseFunc()
+                pauseFunc(text: "incorrect user..")
             }
+        }
+        counter += 1
+        if counter == 3{
+            firstPage()
         }
      }
 }
@@ -370,9 +382,30 @@ func shopping(){
 }
 
 
+func firstPage(){
+    while true{
+        system("clear")
+        print("1.For Seller")
+        print("2.For Customer")
+        if let input = readLine(){
+            switch input{
+                case "1":
+                    print("seller")
+                case "2":
+                    loginCustomer()
+                default:
+                    pauseFunc(text: "wrong input please try again..")
+                    continue
+            }
+        }
+    }
+
+}
+
+
+
 func main(){
-    loginCustomer()
-    shopping()
+    firstPage()
 }
 
 main()
