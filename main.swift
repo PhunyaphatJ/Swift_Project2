@@ -125,7 +125,8 @@ class Order{
 
     func buy(item:Product,quantity:Int){
         if let index = orderDetails.firstIndex(where: {$0.product.product_id == item.product_id}){
-            orderDetails[index].quantity += item.quantity
+            orderDetails[index].quantity += quantity
+            orderDetails[index].total += (item.price * Double(quantity))
             item.quantity -= quantity
         }else{
             orderDetails.append((product:item,quantity:quantity,total:item.price * Double(quantity)))
@@ -133,14 +134,15 @@ class Order{
         }
     }
 
-    func searchByCustomerID(id:Int) -> Order?{
+    func searchByCustomerID(id:Int) -> Bool{
         if cust_id == id{
-            return self
+            return true
         }
-        return nil
+        return false
     }
 
     func show(){
+        print("Order id\(order_id)")
         for item in orderDetails{
             print("id: \(item.product.product_id) quantity : \(item.quantity) price: \(item.total)")
         }
@@ -245,6 +247,10 @@ struct Store<T>{
         }
         return nil
    }
+ 
+    func getAllItems()->[T]{
+        return items
+    }
 
 }
 
@@ -275,8 +281,18 @@ company.addEmployee(employee: Seller(name: "seller1", age: 30, salary: 25000,isM
 
 //end data store
 
-
 //func 
+func showOrderByCustID(orders:[Order],id:Int){
+  for order in orders{
+    if order.searchByCustomerID(id:id){
+        order.show()
+    }
+  }
+}
+
+
+
+//func page
 func pauseFunc(text:String){
     print(text,terminator:"")
     _ = readLine()
@@ -300,6 +316,7 @@ func loginCustomer(){
                     if user.checkPassword(pass: password){
                         customerNow = user
                         pauseFunc(text: "login successful")
+                        customerMainPage()
                         break
                     }else{
                         pauseFunc(text: "incorrect password..")
@@ -318,6 +335,7 @@ func loginCustomer(){
 
 func logoutCustomer(){
     customerNow = nil
+    firstPage()
 }
 
 
@@ -338,7 +356,6 @@ func shopping(){
                                     if let quantity = Int(readLine()!){
                                         if quantity <= product.quantity{
                                             order.buy(item: product, quantity: quantity)
-                                            orders.add(item: order)
                                         }else{
                                             print("input quantity > prodcut quantity")
                                         }
@@ -347,6 +364,7 @@ func shopping(){
                                     }
                                 }else{
                                     print("product quantity is empty")
+                                    continue loopBuy
                                 }
                             } else {
                                 print("Product not found")
@@ -361,6 +379,7 @@ func shopping(){
                                 case "y","Y":
                                     continue loopBuy
                                 case "n","N":
+                                    orders.add(item: order)
                                     break buy
                                 default:
                                     print("wrong input")
@@ -402,9 +421,36 @@ func firstPage(){
 
 }
 
+func customerMainPage(){
+    while true{
+        system("clear")
+        print("1.Buy")
+        print("2.My Orders")
+        print("3.My Profile")
+        print("4.Logout")
+        if let input = readLine(){
+            switch input{
+                case "1":
+                    shopping()
+                case "2":
+                    print("Orders #\(customerNow?.cust_id ?? 0)")
+                    showOrderByCustID(orders: orders.getAllItems(), id: customerNow?.cust_id ?? 0)
+                    pauseFunc(text: "")
+                case "3":
+                    print("My Profile")
+                case "4":
+                    logoutCustomer()
+                default:
+                    pauseFunc(text: "wrong input please try again..")
+            }
+        }
+    }
+}
+//
 
 
 func main(){
+  
     firstPage()
 }
 
