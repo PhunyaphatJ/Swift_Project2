@@ -28,6 +28,10 @@ class Person{
         self.name = name
         self.age = age
     }
+
+    func show(){
+        print("name:\(name) age\(age ?? 0)")
+    }
 }
 
 
@@ -49,7 +53,7 @@ class Employee:Person{
         self.init(name:name,age:nil,salary:salary,isManager: false)
     }
 
-    func show(){
+    override func show(){
         print("ID: \(id) name: \(name) age: \(age != nil ? "\(age!)" : "nil") salary: \(salary)")
     }
 }
@@ -86,13 +90,13 @@ class Account:Employee{
 
 class Customer:Person{
     static private var count = 0
-    let cust_id:Int
+    let custID:Int
     var password:String
     // var orders:[Orders] = []
 
     init(name:String,age:Int,password:String){
         Customer.count += 1
-        cust_id = Customer.count
+        custID = Customer.count
         self.password = password
         super.init(name: name, age: age)
     }
@@ -103,13 +107,17 @@ class Customer:Person{
         }
         return false
    }
+
+    override func show(){
+        print("ID: \(custID) name: \(name) age: \(age ?? 0)")
+    }
     
 }
 
 class Order{
     static private var count = 0
-    var order_id:Int
-    var cust_id:Int
+    var orderID:Int
+    var custID:Int
     var orderDetails:[(product:Product,quantity:Int,total:Double)] = []
     var total:Double{
         return orderDetails.reduce(0) {(result,item)in
@@ -117,10 +125,10 @@ class Order{
         }
 }
 
-    init(cust_id:Int){
+    init(custID:Int){
         Order.count += 1
-        self.order_id = Order.count
-        self.cust_id = cust_id
+        self.orderID = Order.count
+        self.custID = custID
     }
 
     func buy(item:Product,quantity:Int){
@@ -135,14 +143,14 @@ class Order{
     }
 
     func searchByCustomerID(id:Int) -> Bool{
-        if cust_id == id{
+        if custID == id{
             return true
         }
         return false
     }
 
     func show(){
-        print("Order id\(order_id)")
+        print("Order id\(orderID)")
         for item in orderDetails{
             print("id: \(item.product.product_id) quantity : \(item.quantity) price: \(item.total)")
         }
@@ -210,13 +218,13 @@ struct Store<T>{
             if let product = item as? Product{
                 print(product.name,product.quantity)
             }else if let order = item as? Order{
-                print("cust_ID ",order.cust_id,"order_id ",order.order_id)
+                print("custID ",order.custID,"orderID ",order.orderID)
                 order.show()
                 return
             }else if let employee = item as? Employee{
                 print(employee.id)
             }else if let customer = item as? Customer{
-                print("ID: \(customer.cust_id) Name: \(customer.name)")
+                print("ID: \(customer.custID) Name: \(customer.name)")
             }
         }
     }
@@ -225,11 +233,11 @@ struct Store<T>{
         for item in items{
             if let product = item as? Product,product.product_id == id{
                 return product as? T
-            }else if let order = item as? Order,order.order_id == id{
+            }else if let order = item as? Order,order.orderID == id{
                 return order as? T
             }else if let employee = item as? Employee,employee.id == id{
                 return employee as? T
-            }else if let customer = item as? Customer,customer.cust_id == id{
+            }else if let customer = item as? Customer,customer.custID == id{
                 return customer as? T
             }
         }
@@ -345,7 +353,7 @@ func shopping(){
     if let input = readLine() {
         switch input {
         case "Y", "y":
-                    let order = Order(cust_id: customerNow?.cust_id ?? 0)
+                    let order = Order(custID: customerNow?.custID ?? 0)
                     loopBuy:repeat{
                         print("Enter product ID:")
                         if let productID = Int(readLine()!) {
@@ -364,7 +372,6 @@ func shopping(){
                                     }
                                 }else{
                                     print("product quantity is empty")
-                                    continue loopBuy
                                 }
                             } else {
                                 print("Product not found")
@@ -411,7 +418,7 @@ func firstPage(){
                 case "1":
                     print("seller")
                 case "2":
-                    loginCustomer()
+                    logAndRegisPage()
                 default:
                     pauseFunc(text: "wrong input please try again..")
                     continue
@@ -420,6 +427,75 @@ func firstPage(){
     }
 
 }
+
+func logAndRegisPage(){
+    while true{
+        system("clear")
+        print("1.Login")
+        print("2.Register")
+        if let input = readLine(){
+            switch input{
+                case "1":
+                    loginCustomer()
+                case "2":
+                    register()
+                default:
+                    pauseFunc(text: "wrong input please try again..")
+            }
+        }
+    }
+}
+
+func register(){
+    register:while true{
+        print("Enter Name: ",terminator: "")
+        if let name = readLine(){
+            print("Enter Age: ",terminator: "")
+            if let age = Int(readLine()!){
+                print("Enter Password: ",terminator: "")
+                if let password = readLine(){
+                    print("Name: \(name) age: \(age) Is this correct? (Y:N) : ",terminator: "")
+                    if let input = readLine(){
+                        switch input{
+                            case "Y","y":
+                                customers.add(item: Customer(name: name, age: age, password: password))
+                                pauseFunc(text: "register complete")
+                                logAndRegisPage()
+                            case "N","n":
+                                continue register
+                            default:
+                                 pauseFunc(text: "wrong input please try again..")
+                        }
+                    }
+                }
+            }else{
+                pauseFunc(text: "age must be Int")
+            }
+        }
+    }
+}
+
+
+func registerPage(){
+    while true{
+        system("clear")
+        print("+-----------------+")
+        print("|     register    |")
+        print("+-----------------+")
+        print("Do you want to register (Y:N) : ",terminator: "")
+        if let input = readLine(){
+            switch input{
+                case "Y","y":
+                    register()
+                case "N","n":
+                    logAndRegisPage()
+                default:
+                    pauseFunc(text: "wrong input please try again..") 
+            }
+        }
+    }
+}
+
 
 func customerMainPage(){
     while true{
@@ -433,11 +509,12 @@ func customerMainPage(){
                 case "1":
                     shopping()
                 case "2":
-                    print("Orders #\(customerNow?.cust_id ?? 0)")
-                    showOrderByCustID(orders: orders.getAllItems(), id: customerNow?.cust_id ?? 0)
+                    print("Orders #\(customerNow?.custID ?? 0)")
+                    showOrderByCustID(orders: orders.getAllItems(), id: customerNow?.custID ?? 0)
                     pauseFunc(text: "")
                 case "3":
-                    print("My Profile")
+                    customerNow?.show()
+                    pauseFunc(text: "")
                 case "4":
                     logoutCustomer()
                 default:
