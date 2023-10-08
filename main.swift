@@ -377,47 +377,43 @@ func pauseFunc(text:String){
     _ = readLine()
 }
 
-var customerNow:Customer?
-var employeeNow:Employee?
-
-func loginCustomer(){
-    var counter = 0
-     while true{
+func firstPage(){
+    while true{
         system("clear")
-        print("+-----------------+")
-        print("|      Login      |")
-        print("+-----------------+")
-        print("Enter User: ",terminator: "")
-        if let userName = readLine(){
-            if let user = customers.searchName(name: userName){
-                print("Enter password:",terminator: "")
-                if let password = readLine(){
-                    if user.checkPassword(pass: password){
-                        customerNow = user
-                        pauseFunc(text: "login successful..")
-                        customerMainPage()
-                        sellerMainPage()
-                        break
-                    }else{
-                        pauseFunc(text: "incorrect password..")
-                    }
-                }
-            }else{
-                pauseFunc(text: "incorrect user..")
+        print("1.For Seller")
+        print("2.For Customer")
+        if let input = readLine(){
+            switch input{
+                case "1":
+                    employeePage()
+                case "2":
+                    logAndRegisPage()
+                default:
+                    pauseFunc(text: "wrong input please try again..")
+                    continue
             }
         }
-        counter += 1
-        if counter == 3{
-            firstPage()
+    }
+}
+
+func employeePage(){
+    while true{
+        system("clear")
+        print("1.For Admin")
+        print("2.For Seller")
+        if let input = readLine(){
+            switch input{
+                case "1":
+                    print("For Admin")
+                case "2":
+                    loginSeller()
+                default:
+                    pauseFunc(text: "wrong input please try again..")
+                    continue
+            }
         }
-     }
+    }
 }
-
-func logoutCustomer(){
-    customerNow = nil
-    firstPage()
-}
-
 
 var sellerNow:Seller?
 func loginSeller(){
@@ -441,18 +437,96 @@ func loginSeller(){
                  }
                 }
             }
+            counter += 1
+            if counter == 3{
+                firstPage()
         }
-        counter += 1
-        if counter == 3{
-            firstPage()
     }
 }
 
-func sellerMainPage(){
-    print(sellerNow?.show())
-    pauseFunc(text: "...")
+func logoutSeller(){
+    sellerNow = nil
+    firstPage()
 }
 
+func sellerMainPage(){
+    while true{
+        system("clear")
+        print("1.Add New Product")
+        print("2.Restock")
+        print("3.Check Products")
+        print("4.Logout")
+        if let input = readLine(){
+            switch input{
+                case "1":
+                    addNewPage()
+                case "2":
+                    print("Restock")
+                case "3":
+                    showAll(items: products.getAllItems())
+                    pauseFunc(text: "")
+                case "4":
+                    logoutSeller()
+                default:
+                    pauseFunc(text: "wrong input please try again..")
+            }
+        }
+    }
+}
+
+func addNewPage(){
+    while true{
+        system("clear")
+        print("Do you want to add new Product (Y:N) : ",terminator: "")
+        if let input = readLine(){
+            switch input{
+                case "y","Y":
+                    addProduct()
+                case "n","N":
+                    sellerMainPage()
+                default:
+                    pauseFunc(text: "wrong input please try again...")
+            }
+        }
+    }
+}
+
+func addProduct(){
+    while true{
+        system("clear")
+        print("Category ID : ",terminator: "")
+        if let category = Int(readLine()!){
+            print("Name : ",terminator: "")
+            if let name = readLine(){
+                print("Quantity : ",terminator: "")
+                if let quantity = Int(readLine()!){
+                    print("Price : ",terminator: "")
+                    if let price = Double(readLine()!){
+                        products.add(item: Product(name: name, quantity: quantity, price: price, categoID: category))
+                        pauseFunc(text: "completed..")
+                        print("Do you want to Add (Y:N) : ",terminator: "")
+                        if let input = readLine(){
+                            switch input{
+                                case "Y","y":
+                                    continue
+                                default:
+                                    sellerMainPage()
+                            }
+                        }
+                    }else{
+                        pauseFunc(text: "price must be Double")
+                    }
+                }else{
+                    pauseFunc(text: "quantity must be Int")
+                }
+            }
+        }else{
+            pauseFunc(text: "category must be Int")
+        }
+    }
+}
+
+//Customer Page
 
 func shopping(){
     buy: while true {
@@ -516,26 +590,6 @@ func shopping(){
 }
 
 
-func firstPage(){
-    while true{
-        system("clear")
-        print("1.For Seller")
-        print("2.For Customer")
-        if let input = readLine(){
-            switch input{
-                case "1":
-                    loginSeller()
-                case "2":
-                    logAndRegisPage()
-                default:
-                    pauseFunc(text: "wrong input please try again..")
-                    continue
-            }
-        }
-    }
-
-}
-
 func logAndRegisPage(){
     while true{
         system("clear")
@@ -552,6 +606,46 @@ func logAndRegisPage(){
             }
         }
     }
+}
+var customerNow:Customer?
+var employeeNow:Employee?
+
+func loginCustomer(){
+    var counter = 0
+     while true{
+        system("clear")
+        print("+-----------------+")
+        print("|      Login      |")
+        print("+-----------------+")
+        print("Enter User: ",terminator: "")
+        if let userName = readLine(){
+            if let user = customers.searchName(name: userName){
+                print("Enter password:",terminator: "")
+                if let password = readLine(){
+                    if user.checkPassword(pass: password){
+                        customerNow = user
+                        pauseFunc(text: "login successful..")
+                        customerMainPage()
+                        sellerMainPage()
+                        break
+                    }else{
+                        pauseFunc(text: "incorrect password..")
+                    }
+                }
+            }else{
+                pauseFunc(text: "incorrect user..")
+            }
+        }
+        counter += 1
+        if counter == 3{
+            firstPage()
+        }
+     }
+}
+
+func logoutCustomer(){
+    customerNow = nil
+    firstPage()
 }
 
 func register(){
