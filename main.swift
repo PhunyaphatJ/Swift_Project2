@@ -19,8 +19,8 @@ class Company{
     }
 
     func searchName(name:String,password:String) -> Employee?{
-        if let employee =  employees.searchName(name: name) as? Seller{
-            if employee.checkPassword(password: password){
+      if let employee = employees.searchName(name: name) {
+            if employee.checkPassword(password:password){
                 return employee
             }
         }
@@ -48,33 +48,24 @@ class Employee:Person{
     var id:Int
     var salary:Double
     var isManager:Bool
+    var password:String
 
-    init(name:String,age:Int?,salary:Double,isManager:Bool){
+    init(name:String,age:Int?,salary:Double,isManager:Bool,password:String){
         Company.id += 1
         self.id = Company.id
         self.salary = salary
         self.isManager = isManager
+        self.password = password
         super.init(name: name, age: age)
     }
 
 
-    convenience init(name:String,salary:Double){
-        self.init(name:name,age:nil,salary:salary,isManager: false)
+    convenience init(name:String,salary:Double,password:String){
+        self.init(name:name,age:nil,salary:salary,isManager: false,password: password)
     }
 
     override func show(){
         print("ID: \(id) name: \(name) age: \(age != nil ? "\(age!)" : "nil") salary: \(salary)")
-    }
-}
-
-class Seller:Employee{
-    let departmentID = 10
-    var customers:[Customer] = []
-    var password:String
-
-    init(name:String,age:Int?,salary:Double,isManager:Bool,password:String){
-        self.password = password
-        super.init(name: name, age: age, salary: salary,isManager: isManager)
     }
 
     func checkPassword(password:String) -> Bool{
@@ -83,14 +74,23 @@ class Seller:Employee{
         }
         return false
     }
+}
+
+class Seller:Employee{
+    let departmentID = 10
+    var customers:[Customer] = []
+
+    override init(name:String,age:Int?,salary:Double,isManager:Bool,password:String){
+        super.init(name: name, age: age, salary: salary,isManager: isManager,password: password)
+    }
 
 }
 
 class IT:Employee{
     let departmentID = 20
 
-    override init(name:String,age:Int?,salary:Double,isManager:Bool){
-        super.init(name: name, age: age, salary: salary, isManager: isManager)
+    override init(name:String,age:Int?,salary:Double,isManager:Bool,password:String){
+        super.init(name: name, age: age, salary: salary, isManager: isManager,password: password)
     }
     
 }
@@ -98,8 +98,8 @@ class IT:Employee{
 class Account:Employee{
     let departmentID = 30
 
-    override init(name:String,age:Int?,salary:Double,isManager:Bool){
-        super.init(name: name, age: age, salary: salary, isManager: isManager)
+    override init(name:String,age:Int?,salary:Double,isManager:Bool,password:String){
+        super.init(name: name, age: age, salary: salary, isManager: isManager,password: password)
     }
 }
 
@@ -340,6 +340,7 @@ var orders = Store<Order>()
 let company = Company()
 company.addEmployee(employee: Seller(name: "Seller Manger", age: 30, salary: 50000,isManager: true,password: "1234"))
 company.addEmployee(employee: Seller(name: "Seller1", age: 30, salary: 25000,isManager: false,password: "4321"))
+company.addEmployee(employee: Employee(name: "Admin", salary: 30000, password: "1234"))
 
 //end data store
 
@@ -380,7 +381,7 @@ func pauseFunc(text:String){
 func firstPage(){
     while true{
         system("clear")
-        print("1.For Seller")
+        print("1.For Employee")
         print("2.For Customer")
         if let input = readLine(){
             switch input{
@@ -404,7 +405,7 @@ func employeePage(){
         if let input = readLine(){
             switch input{
                 case "1":
-                    print("For Admin")
+                    loginAdmin()
                 case "2":
                     loginSeller()
                 default:
@@ -414,6 +415,42 @@ func employeePage(){
         }
     }
 }
+
+func loginAdmin(){
+    var counter = 0
+     while true{
+        system("clear")
+        print("+-----------------+")
+        print("|      Login      |")
+        print("+-----------------+")
+        print("Enter User: ",terminator: "")
+        if let userName = readLine(){
+            print("Enter password:",terminator: "")
+            if let password = readLine(){
+                if let user = company.searchName(name: userName, password: password){
+                    if user.name == "Admin" && user.checkPassword(password: password){
+                        pauseFunc(text: "login successful..")
+                        adminMainPage()
+                    }else{
+                        pauseFunc(text: "incorrect user or password..")
+                    }
+                }else{
+                    pauseFunc(text: "incorrect user or password..")
+                 }
+                }
+            }
+            counter += 1
+            if counter == 3{
+                firstPage()
+        }
+    }
+}
+
+func adminMainPage(){
+    print("admin Main")
+    pauseFunc(text: "asdf")
+}
+
 
 var sellerNow:Seller?
 func loginSeller(){
@@ -628,7 +665,6 @@ func shopping(){
         print("wrong")
     }
 }
-    orders.show()
 }
 
 
@@ -768,8 +804,6 @@ func customerMainPage(){
     }
 }
 //
-
-
 func main(){
     firstPage()
 }
