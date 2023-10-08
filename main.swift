@@ -168,9 +168,9 @@ class Order{
     }
 
     func show(){
-        print("Order id\(orderID)")
+        print("\(orderID)  ")
         for item in orderDetails{
-            print("id: \(item.product.productID) quantity : \(item.quantity) price: \(item.total)")
+            print("\(item.product.productID)  \(item.quantity)  \(item.total)")
         }
         print("total: \(total)")
     }
@@ -356,9 +356,12 @@ func showOrderByCustID(orders:[Order],id:Int){
 func showAll<T>(items:[T]){
     switch items{
         case is [Product]:
-        print("+----------------------------------------+")
-        print("| ID |   Name   |   Quantity   |  Price  |")
-        print("------------------------------------------")
+            print("+----------------------------------------+")
+            print("| ID |   Name   |   Quantity   |  Price  |")
+            print("------------------------------------------")
+        case is [Order]:
+            print("+----------------------------------------+")
+            print("| OrderID | ProductID | Quantity | Price |")
         default:
             print("wrong")
     }
@@ -366,6 +369,8 @@ func showAll<T>(items:[T]){
     for item in items{
         if let product = item as? Product{
             product.show()
+        }else if let order = item as? Order{
+            order.show()
         }
     }
 }
@@ -447,8 +452,12 @@ func loginAdmin(){
 }
 
 func adminMainPage(){
-    print("admin Main")
-    pauseFunc(text: "asdf")
+    while true{
+        system("clear")
+        print("1.Add new Employee")
+        print("2.")
+        print("3.Show Employee")
+    }
 }
 
 
@@ -492,7 +501,8 @@ func sellerMainPage(){
         print("1.Add New Product")
         print("2.Restock")
         print("3.Check Products")
-        print("4.Logout")
+        print("4.Show Order")
+        print("5.Logout")
         if let input = readLine(){
             switch input{
                 case "1":
@@ -503,6 +513,8 @@ func sellerMainPage(){
                     showAll(items: products.getAllItems())
                     pauseFunc(text: "")
                 case "4":
+                    showOrderPage()
+                case "5":
                     logoutSeller()
                 default:
                     pauseFunc(text: "wrong input please try again..")
@@ -604,6 +616,30 @@ func restock(){
         }
     }
 }
+
+func showOrderPage(){
+    while true{
+        system("clear")
+        print("1.Show All")
+        print("2.Show By Order ID")
+        print("2.Show By Customer Name")
+        if let input = readLine(){
+            switch input{
+                case "1":
+                    showAll(items: orders.getAllItems())
+                    pauseFunc(text: "")
+                case "2":
+                    print("showByOrderID")
+                case "3":
+                    print("ShowByCustomerName")
+                default:
+                    pauseFunc(text: "wrong input please try again..")
+            }
+        }
+    }
+}
+
+
 
 //Customer Page
 
