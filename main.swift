@@ -461,7 +461,7 @@ func sellerMainPage(){
                 case "1":
                     addNewPage()
                 case "2":
-                    print("Restock")
+                    restock()
                 case "3":
                     showAll(items: products.getAllItems())
                     pauseFunc(text: "")
@@ -522,6 +522,48 @@ func addProduct(){
             }
         }else{
             pauseFunc(text: "category must be Int")
+        }
+    }
+}
+
+func restockPage(){
+    while true{
+        system("clear")
+        print("Do You want to Restock (Y:N) : ",terminator: "")
+        if let input = readLine(){
+            switch input{
+                case "Y","y":
+                    restock()
+                case "N","n":
+                    sellerMainPage()
+                default:
+                    pauseFunc(text: "wrong input please try again..")
+            }
+        }
+    }
+}
+
+func restock(){
+    while true{
+        var copyProducts = products.getAllItems()
+        copyProducts.sort(by: {$0.quantity < $1.quantity})
+        showAll(items: copyProducts)
+        print("Product ID : ",terminator: "")
+        if let id = Int(readLine()!){
+            if let product = products.searchID(id: id){
+                print("Quantity : ",terminator: "")
+                if let quantity = Int(readLine()!){
+                    product.add(quantity: quantity)
+                    pauseFunc(text: "complete..")
+                    sellerMainPage()
+                }else{
+                    pauseFunc(text: "Quantity must be Int..")
+                }
+            }else{
+                pauseFunc(text: "not found this ID..")
+            }
+        }else{
+            pauseFunc(text: "ID must be Int..")
         }
     }
 }
