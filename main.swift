@@ -476,6 +476,8 @@ func showAll<T>(items:[T]){
             order.show()
         }else if let customer = item as? Shop.Customer{
             customer.show()
+        }else if let employee = item as? Employee{
+            employee.show()
         }
     }
     print("+-----------------------------------------+")
@@ -690,7 +692,8 @@ func sellerMainPage(){
         print("3.Check Products")
         print("4.Show Order")
         print("5.Show Customers")
-        print("6.Logout")
+        print("6.Subscribe")
+        print("7.Logout")
         print("------------------------------")
         print("Enter : ",terminator: "")
         if let input = readLine(){
@@ -707,6 +710,8 @@ func sellerMainPage(){
                 case "5":
                     showCustomerPage()
                 case "6":
+                    toMembershipPage()
+                case "7":
                     logoutSeller()
                 default:
                     pauseFunc(text: "wrong input please try again..")
@@ -967,6 +972,40 @@ func showCustomerByName(){
                 default:
                     pauseFunc(text: "wrong input please try again..")
             }
+        }
+    }
+}
+
+func toMembershipPage(){
+    while true{
+        system("clear")
+        print("Enter (Y:N) : ",terminator: "")
+        if let input = readLine(){
+            switch input{
+                case "Y","y":
+                    toMembership()
+                case "N","n":
+                    sellerMainPage()
+                default:
+                    pauseFunc(text: "wrong input please try again")
+            }
+        }
+    }
+}
+
+func toMembership(){
+    while true{
+        print("Enter ID : ",terminator: "")
+        if let id = Int(readLine()!){
+            if let customer = company.getShopByID(id: 1)?.customers.searchID(id: id){
+                customer.rankUp()
+                pauseFunc(text: "complete..")
+                toMembershipPage()
+            }else{
+                pauseFunc(text: "not found this id")
+            }
+        }else{
+            pauseFunc(text: "id must be int")
         }
     }
 }
