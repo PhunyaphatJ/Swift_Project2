@@ -321,33 +321,43 @@ class Shop{
 
     func buy(order:Order,customer:Customer){
         while true{
-            system("clear")
-            order.show()
-            let total = order.total * (1 - (customer.member.discount))
-            if customer.member == .member{
-                print("Your Member")
-                print("Discount 4%")
-            }else{
-                print("Your not a Member")
-                print("Discount 2%")
-            }
-            print("Total Price : \(total)")
-            print("Enter Your Money :",terminator: "")
-                if let money = Double(readLine()!){
-                    if money < total{
-                        pauseFunc(text: "not enough money..")
-                        continue
-                    }else{
-                        orders.add(item: order)
-                        print("thank you for buying..")
-                        let change = money - total
-                        pauseFunc(text: "\(change == 0 ? "" : "change : \(change)")")
-                        customerMainPage()
-                    }
+            do{
+                system("clear")
+                order.show()
+                let total = order.total * (1 - (customer.member.discount))
+                if customer.member == .member{
+                    print("Your Member")
+                    print("Discount 4%")
                 }else{
-                    pauseFunc(text: "money must be Double")
+                    print("Your not a Member")
+                    print("Discount 2%")
                 }
+                print("Total Price : \(total)")
+                print("Enter Your Money :",terminator: "")
+                    if let money = Double(readLine()!){
+                        if money < total{
+                            throw BuyError.insuffcient(moneyNeeded: total - money)
+                        }else{
+                            orders.add(item: order)
+                            print("thank you for buying..")
+                            let change = money - total
+                            pauseFunc(text: "\(change == 0 ? "" : "change : \(change)")")
+                            customerMainPage()
+                        }
+                    }else{
+                        pauseFunc(text: "money must be Double")
+                    }
+            }catch BuyError.insuffcient(let moneyNeeded){
+                pauseFunc(text: "not enough money Please add more money : \(moneyNeeded)")
+                continue
+            }catch{
+                print("some error")
+            }
         }
+    }
+
+    enum BuyError:Error{
+        case insuffcient(moneyNeeded:Double)
     }
 
     class Customer:Person{
