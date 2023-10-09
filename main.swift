@@ -319,9 +319,35 @@ class Shop{
         self.shopID = Shop.count
     }
 
-
-    func createCustomer(name:String,age:Int,password:String)->Customer{
-        return Customer(name: name, age: age, password: password)
+    func buy(order:Order,customer:Customer){
+        while true{
+            system("clear")
+            order.show()
+            let total = order.total * (1 - (customer.member.discount))
+            if customer.member == .member{
+                print("Your Member")
+                print("Discount 4%")
+            }else{
+                print("Your not a Member")
+                print("Discount 2%")
+            }
+            print("Total Price : \(total)")
+            print("Enter Your Money :",terminator: "")
+                if let money = Double(readLine()!){
+                    if money < total{
+                        pauseFunc(text: "not enough money..")
+                        continue
+                    }else{
+                        orders.add(item: order)
+                        print("thank you for buying..")
+                        let change = money - total
+                        pauseFunc(text: "\(change == 0 ? "" : "change : \(change)")")
+                        customerMainPage()
+                    }
+                }else{
+                    pauseFunc(text: "money must be Double")
+                }
+        }
     }
 
     class Customer:Person{
@@ -415,6 +441,7 @@ company.getShopByID(id: 1)?.orders.add(item: order2)
 //add Customers
 company.getShopByID(id: 1)?.customers.add(item: Shop.Customer(name: "Customer1", age: 22, password: "1234"))
 company.getShopByID(id: 1)?.customers.add(item: Shop.Customer(name: "Customer2", age: 32, password: "4321"))
+company.getShopByID(id: 1)?.customers.searchID(id: 1)?.rankUp()
 //end data store
 
 //func 
@@ -431,7 +458,7 @@ func showAll<T>(items:[T]){
         case is [Product]:
             print("+----------------------------------------+")
             print("| ID |   Name   |   Quantity   |  Price  |")
-           print("+-----------------------------------------+")
+            print("+----------------------------------------+")
         case is [Order]:
             print("+------------------------------------------+")
             print("| OrderID | ProductID | Quantity |  Price  |")
@@ -867,6 +894,7 @@ func showCustomerByName(){
 
 func shopping(){
     buy: while true {
+    system("clear")
     print("enter y/n : ")
     if let input = readLine() {
         switch input {
@@ -874,12 +902,13 @@ func shopping(){
                     let order = Order(custID: customerNow?.custID ?? 0)
                     loopBuy:repeat{
                         //show all Products
+                        system("clear")
                         showAll(items: company.getShopByID(id: 1)!.products.getAllItems())
-                        print("Enter product ID:")
+                        print("Enter product ID:",terminator: "")
                         if let productID = Int(readLine()!) {
                             if let product = company.getShopByID(id: 1)!.products.searchID(id: productID) {
                                 if product.checkQuantity(){
-                                    print("Enter Quantity: ")
+                                    print("Enter Quantity: ",terminator: "")
                                     if let quantity = Int(readLine()!){
                                         if quantity <= product.quantity{
                                             order.buy(item: product, quantity: quantity)
@@ -905,7 +934,7 @@ func shopping(){
                                 case "y","Y":
                                     continue loopBuy
                                 case "n","N":
-                                    company.getShopByID(id: 1)!.orders.add(item: order)
+                                    company.getShopByID(id: 1)!.buy(order: order,customer: customerNow!)
                                     break buy
                                 default:
                                     print("wrong input")
