@@ -563,9 +563,90 @@ func adminMainPage(){
         print("1.Add new Employee")
         print("2.")
         print("3.Show Employee")
+        print("--------------------")
+        print("Enter : ",terminator: "")
+        if let input = readLine(){
+            switch input{
+                case "1":
+                    addEmployeePage()
+                case "2":
+                    print("2222")
+                case "3":
+                    showEmployeePage()
+                default:
+                    pauseFunc(text: "wrong input please try again..")
+            }
+        }
     }
 }
 
+func addEmployeePage(){
+    while true{
+        print("Enter Name : ",terminator: "")
+        if let name = readLine(){
+            print("Enter Age : ",terminator: "")
+            if let age = Int(readLine()!){
+                print("Enter Salary : ",terminator: "")
+                if let salary = Double(readLine()!){
+                    if let password = readLine(){
+                        addEmployee(name: name, age: age, salary: salary, password: password)
+                    }
+                }else{
+                    pauseFunc(text: "salary Must be Double")
+                }
+            }else{
+                pauseFunc(text: "age must be Int")
+            }
+        }
+    }
+}
+
+func addEmployee(name:String,age:Int?,salary:Double,password:String){
+    while true{
+        print("Select Dapartment : ",terminator: "")
+        print("1.Seller")
+        print("2.IT")
+        print("3.Accounter")
+        if let input = readLine(){
+            switch input{
+                case "1":
+                    company.addEmployee(employee: Seller(name: name, age: age, salary: salary, isManager: false, password: password))
+                    adminMainPage()
+                case "2":
+                    company.addEmployee(employee: IT(name: name, age: age, salary: salary, isManager: false, password: password))
+                    adminMainPage()
+                case "3":
+                    company.addEmployee(employee: Account(name: name, age: age, salary: salary, isManager: false, password: password))
+                    adminMainPage()
+                default:
+                    pauseFunc(text: "wrong input please try again..")
+            }
+        }
+    }
+}
+
+func showEmployeePage(){
+    while true{
+        print("1.Show All")
+        print("2.Show By ID")
+        print("3.Show By Name")
+        print("----------------")
+        print("Enter : ",terminator: "")
+        if let input = readLine(){
+            switch input{
+                case "1":
+                    showAll(items: company.employees.getAllItems())
+                    pauseFunc(text: "")
+                case "2":
+                    print("by id")
+                case "3":
+                    print("by Name")
+                default:
+                    pauseFunc(text: "wrong input please try again..")
+            }
+        }
+    }
+}
 
 var sellerNow:Seller?
 func loginSeller(){
