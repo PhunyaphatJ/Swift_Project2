@@ -4,10 +4,20 @@ import Foundation;
 class Company{
     static var id = 0
     var employees = Store<Employee>()
+    var shops = Store<Shop>()
+
     var countEmployee:Int{employees.count}
 
     func addEmployee(employee:Employee){
         employees.add(item: employee)
+    }
+
+    func addShop(shop:Shop){
+        shops.add(item: shop)
+    }
+
+    func getShopByID(id:Int)->Shop?{
+        return shops.searchID(id: id)
     }
 
     func search(id:Int)->Employee?{
@@ -26,6 +36,7 @@ class Company{
         }
         return nil
     }
+
 }
 
 
@@ -78,7 +89,7 @@ class Employee:Person{
 
 class Seller:Employee{
     let departmentID = 10
-    var customers:[Customer] = []
+    // var customers:[Customer] = []
 
     override init(name:String,age:Int?,salary:Double,isManager:Bool,password:String){
         super.init(name: name, age: age, salary: salary,isManager: isManager,password: password)
@@ -103,33 +114,6 @@ class Account:Employee{
     }
 }
 
-
-
-class Customer:Person{
-    static private var count = 0
-    let custID:Int
-    var password:String
-    // var orders:[Orders] = []
-
-    init(name:String,age:Int,password:String){
-        Customer.count += 1
-        custID = Customer.count
-        self.password = password
-        super.init(name: name, age: age)
-    }
-
-     func checkPassword(pass:String) -> Bool{
-        if password == pass{
-            return true
-        }
-        return false
-   }
-
-    override func show(){
-        print("ID: \(custID) name: \(name) age: \(age ?? 0)")
-    }
-    
-}
 
 class Order{
     static private var count = 0
@@ -168,11 +152,21 @@ class Order{
     }
 
     func show(){
-        print("\(orderID)  ")
+        let pOrderID = "\(orderID)".padding(toLength: 37, withPad: " ", startingAt: 0)
+        print("============================================")
+        print("|".padding(toLength: 4, withPad: " ", startingAt: 0),pOrderID,"|")
+        print("--------------------------------------------")
         for item in orderDetails{
-            print("\(item.product.productID)  \(item.quantity)  \(item.total)")
+            let space1 = "".padding(toLength: 4, withPad: " ", startingAt: 0)
+            let pID = "\(space1)\(item.product.productID)".padding(toLength: 10, withPad: " ", startingAt: 0)
+            let pQuantity = "\(space1)\(item.quantity)".padding(toLength: 10, withPad: " ", startingAt: 0)
+            let pTotal = "\(space1)\(item.total)".padding(toLength: 9, withPad: " ", startingAt: 0)
+            print("|\(space1)\(space1) | \(pID)|\(pQuantity)|\(pTotal)|")
+            print("--------------------------------------------")
         }
-        print("total: \(total)")
+        let pTotal = "\(total)".padding(toLength: 20, withPad: " ", startingAt: 0)
+        print("                               total: \(pTotal)")
+        print("============================================")
     }
     
 }
@@ -192,8 +186,6 @@ class Category{
         print("ID: \(categoryID) Name: \(categoryName)")
     }
 }
-
-
 
 class Product{
     static private var count = 0
@@ -270,7 +262,7 @@ struct Store<T>{
                 return
             }else if let employee = item as? Employee{
                 print(employee.id)
-            }else if let customer = item as? Customer{
+            }else if let customer = item as? Shop.Customer{
                 print("ID: \(customer.custID) Name: \(customer.name)")
             }else if let category = item as? Category{
                 category.show()
@@ -286,8 +278,10 @@ struct Store<T>{
                 return order as? T
             }else if let employee = item as? Employee,employee.id == id{
                 return employee as? T
-            }else if let customer = item as? Customer,customer.custID == id{
+            }else if let customer = item as? Shop.Customer,customer.custID == id{
                 return customer as? T
+            }else if let shop = item as? Shop,shop.shopID == id{
+                return shop as? T
             }
         }
         return nil
@@ -298,8 +292,10 @@ struct Store<T>{
         for item in items{
             if let employeeName = item as? Employee,employeeName.name == name{
                 return employeeName as? T
-            }else if let custName = item as? Customer,custName.name == name{
+            }else if let custName = item as? Shop.Customer,custName.name == name{
                 return custName as? T
+            }else if let order = item as? Order,company.getShopByID(id: 1)?.customers.searchID(id: order.custID)?.name == name{
+                return order as? T
             }
         }
         return nil
@@ -311,30 +307,86 @@ struct Store<T>{
 
 }
 
+class Shop{
+    static var count = 0
+    let shopID :Int
+    var products = Store<Product>()
+    var customers = Store<Customer>()
+    var orders = Store<Order>()
+    
+    init(){
+        Shop.count += 1
+        self.shopID = Shop.count
+    }
+
+
+    func createCustomer(name:String,age:Int,password:String)->Customer{
+        return Customer(name: name, age: age, password: password)
+    }
+
+    class Customer:Person{
+        static private var count = 0
+        let custID:Int
+        var password:String
+        var member:Tier
+        // var orders:[Orders] = []
+
+        init(name:String,age:Int,password:String){
+            Customer.count += 1
+            custID = Customer.count
+            self.password = password
+            self.member = Tier.standard
+            super.init(name: name, age: age)
+        }
+
+        func checkPassword(pass:String) -> Bool{
+            if password == pass{
+                return true
+            }
+            return false
+        }
+
+        func rankUp(){
+            member = .member
+        }
+
+        static func customerShowHead(){
+            print("+-----------------------------------------+")
+            print("|   ID   |      Name      |     Member    |")
+            print("+-----------------------------------------+")
+        }
+
+        override func show(){
+            let space1 = "".padding(toLength: 3, withPad: " ", startingAt: 0)
+            let space2 = "".padding(toLength: 4, withPad: " ", startingAt: 0)
+            let space3 = "".padding(toLength: 4, withPad: " ", startingAt: 0)
+            let id = "\(custID)".padding(toLength: 5, withPad: " ", startingAt: 0)
+            let nameP = "\(name)".padding(toLength: 12, withPad: " ", startingAt: 0)
+            let memberP = "\(member)".padding(toLength: 11, withPad: " ", startingAt: 0)
+            print("|\(space1)\(id)|\(space2)\(nameP)|\(space3)\(memberP)|")
+        }
+    }
+
+    enum Tier:Int{
+        case standard = 0,member = 1
+         var discount:Double{
+            switch self{
+                case .standard:
+                    return 0.02
+                case .member:
+                    return 0.04
+            }
+        }
+
+    }
+}
+
+
 //categories
 var categoires = Store<Category>()
 categoires.add(item: Category(name: "Food"))
 categoires.add(item: Category(name:"Snack"))
 categoires.add(item: Category(name: "Electronic"))
-
-//products
-var products = Store<Product>()
-products.add(item: Product(name:"Candy1",quantity:10,price:10,categoID: 2))
-products.add(item: Product(name: "Candy2", quantity: 20, price: 50,categoID: 2))
-
-//customers
-var customers = Store<Customer>()
-customers.add(item: Customer(name: "Customer1", age: 20,password: "1234"))
-customers.add(item: Customer(name: "Customer2", age: 22,password: "555"))
-
-//orders
-var orders = Store<Order>()
-
-//test
-// Test loop
-
-
-//end test
 
 //company
 let company = Company()
@@ -342,6 +394,27 @@ company.addEmployee(employee: Seller(name: "Seller Manger", age: 30, salary: 500
 company.addEmployee(employee: Seller(name: "Seller1", age: 30, salary: 25000,isManager: false,password: "4321"))
 company.addEmployee(employee: Employee(name: "Admin", salary: 30000, password: "1234"))
 
+
+company.addShop(shop: Shop())
+//add Products
+company.getShopByID(id: 1)?.products.add(item: Product(name:"Candy1",quantity:100,price:10,categoID: 2))
+company.getShopByID(id: 1)?.products.add(item: Product(name:"Candy2",quantity:200,price:50,categoID: 2))
+
+//add Orders
+let defaultProduct = Product(name: "default", quantity: 0, price: 0, categoID: 0)
+
+let order1 = Order(custID: 1)
+order1.buy(item: company.getShopByID(id: 1)?.products.searchID(id: 1) ?? defaultProduct, quantity: 10)
+order1.buy(item: company.getShopByID(id: 1)?.products.searchID(id: 2) ?? defaultProduct, quantity: 5)
+let order2 = Order(custID: 2)
+order2.buy(item: company.getShopByID(id: 1)?.products.searchID(id: 2) ?? defaultProduct, quantity: 15)
+order2.buy(item: company.getShopByID(id: 1)?.products.searchID(id: 1) ?? defaultProduct, quantity: 10)
+company.getShopByID(id: 1)?.orders.add(item: order1)
+company.getShopByID(id: 1)?.orders.add(item: order2)
+
+//add Customers
+company.getShopByID(id: 1)?.customers.add(item: Shop.Customer(name: "Customer1", age: 22, password: "1234"))
+company.getShopByID(id: 1)?.customers.add(item: Shop.Customer(name: "Customer2", age: 32, password: "4321"))
 //end data store
 
 //func 
@@ -358,10 +431,13 @@ func showAll<T>(items:[T]){
         case is [Product]:
             print("+----------------------------------------+")
             print("| ID |   Name   |   Quantity   |  Price  |")
-            print("------------------------------------------")
+           print("+-----------------------------------------+")
         case is [Order]:
-            print("+----------------------------------------+")
-            print("| OrderID | ProductID | Quantity | Price |")
+            print("+------------------------------------------+")
+            print("| OrderID | ProductID | Quantity |  Price  |")
+            print("+-----------------------------------------+")
+        case is [Shop.Customer]:
+            Shop.Customer.customerShowHead()
         default:
             print("wrong")
     }
@@ -371,8 +447,11 @@ func showAll<T>(items:[T]){
             product.show()
         }else if let order = item as? Order{
             order.show()
+        }else if let customer = item as? Shop.Customer{
+            customer.show()
         }
     }
+    print("+-----------------------------------------+")
 }
 
 
@@ -502,19 +581,24 @@ func sellerMainPage(){
         print("2.Restock")
         print("3.Check Products")
         print("4.Show Order")
-        print("5.Logout")
+        print("5.Show Customers")
+        print("6.Logout")
+        print("------------------------------")
+        print("Enter : ",terminator: "")
         if let input = readLine(){
             switch input{
                 case "1":
                     addNewPage()
                 case "2":
-                    restock()
+                    restockPage()
                 case "3":
-                    showAll(items: products.getAllItems())
+                    showAll(items: company.getShopByID(id: 1)!.products.getAllItems())
                     pauseFunc(text: "")
                 case "4":
                     showOrderPage()
                 case "5":
+                    showCustomerPage()
+                case "6":
                     logoutSeller()
                 default:
                     pauseFunc(text: "wrong input please try again..")
@@ -551,7 +635,7 @@ func addProduct(){
                 if let quantity = Int(readLine()!){
                     print("Price : ",terminator: "")
                     if let price = Double(readLine()!){
-                        products.add(item: Product(name: name, quantity: quantity, price: price, categoID: category))
+                        company.getShopByID(id: 1)!.products.add(item: Product(name: name, quantity: quantity, price: price, categoID: category))
                         pauseFunc(text: "completed..")
                         print("Do you want to Add (Y:N) : ",terminator: "")
                         if let input = readLine(){
@@ -594,12 +678,13 @@ func restockPage(){
 
 func restock(){
     while true{
-        var copyProducts = products.getAllItems()
+        var copyProducts = company.getShopByID(id: 1)!.products.getAllItems()
         copyProducts.sort(by: {$0.quantity < $1.quantity})
         showAll(items: copyProducts)
+        print("")
         print("Product ID : ",terminator: "")
         if let id = Int(readLine()!){
-            if let product = products.searchID(id: id){
+            if let product = company.getShopByID(id: 1)!.products.searchID(id: id){
                 print("Quantity : ",terminator: "")
                 if let quantity = Int(readLine()!){
                     product.add(quantity: quantity)
@@ -622,16 +707,20 @@ func showOrderPage(){
         system("clear")
         print("1.Show All")
         print("2.Show By Order ID")
-        print("2.Show By Customer Name")
+        print("3.Show By Customer Name")
+        print("4.Exit")
+        print("Enter : ",terminator: "")
         if let input = readLine(){
             switch input{
                 case "1":
-                    showAll(items: orders.getAllItems())
+                    showAll(items: company.getShopByID(id: 1)!.orders.getAllItems())
                     pauseFunc(text: "")
                 case "2":
-                    print("showByOrderID")
+                    searchByIDPage()
                 case "3":
-                    print("ShowByCustomerName")
+                    searchNamePage()
+                case "4":
+                    sellerMainPage()
                 default:
                     pauseFunc(text: "wrong input please try again..")
             }
@@ -639,7 +728,140 @@ func showOrderPage(){
     }
 }
 
+func searchByIDPage(){
+    var counter = 0
+    while true{
+        print("ID : ",terminator: "")
+        if let id = Int(readLine()!){
+            if let order = company.getShopByID(id: 1)!.orders.searchID(id: id){
+                order.show()
+                print("Do you want to search again (Y:N) : ",terminator: "")
+                if let input = readLine(){
+                    switch input{
+                        case "Y","y":
+                            continue
+                        default:
+                            showOrderPage()
+                    }
+                }
+            }else{
+                pauseFunc(text: "not found this id")
+                counter += 1
+                if counter == 3 {break}
+            }
+        }else{
+            pauseFunc(text: "wrong input please try again..")
+        }
+    }
+}
 
+func searchNamePage(){
+    var counter = 0
+       while true{
+        print("Name : ",terminator: "")
+        if let name = readLine(){
+            if let order = company.getShopByID(id: 1)!.orders.searchName(name: name){
+                order.show()
+                print("Do you want to search again (Y:N) : ",terminator: "")
+                if let input = readLine(){
+                    switch input{
+                        case "Y","y":
+                            continue
+                        default:
+                            showOrderPage()
+                    }
+                }
+            }else{
+                pauseFunc(text: "not found this Name")
+                 counter += 1
+                if counter == 3 {break}
+            }
+        }
+    }
+}
+
+func showCustomerPage(){
+    while true{
+        system("clear")
+        print("1.Show All")
+        print("2.Show By ID")
+        print("3.Show By Name")
+        print("4.Exit")
+        print("------------------------------")
+        print("Enter : ",terminator: "")
+        if let input = readLine(){
+            switch input{
+                case "1":
+                    showAll(items: company.getShopByID(id: 1)!.customers.getAllItems())
+                    pauseFunc(text: "")
+                case "2":
+                    showCustomerByID()
+                case "3":
+                    showCustomerByName()
+                case "4":
+                    sellerMainPage()
+                default:
+                    pauseFunc(text: "wrong input please try again..")
+            } 
+
+        }
+
+    }
+}
+
+func showCustomerByID(){
+    while true{
+        print("Do you want to Search (Y:N): ",terminator: "")
+        if let input = readLine(){
+            switch input{
+                case "Y","y":
+                    print("Enter ID : ",terminator: "")
+                    if let id = Int(readLine()!){
+                        if let user = company.getShopByID(id: 1)!.customers.searchID(id: id){
+                            Shop.Customer.customerShowHead()
+                            user.show()
+                            print("-------------------------------------------")
+                        }else{
+                            pauseFunc(text: "not found this id")
+                        }
+                    }else{
+                        pauseFunc(text: "id must be Int")
+                    }
+                case "N","n":
+                    showCustomerPage()
+                default:
+                    pauseFunc(text: "wrong input please try again..")
+            }
+        }
+    }
+}
+
+func showCustomerByName(){
+    while true{
+        print("Do you want to Search (Y:N): ",terminator: "")
+        if let input = readLine(){
+            switch input{
+                case "Y","y":
+                    print("Enter Name : ",terminator: "")
+                    if let name = readLine(){
+                        if let user = company.getShopByID(id: 1)!.customers.searchName(name: name){
+                            Shop.Customer.customerShowHead()
+                            user.show()
+                            print("-------------------------------------------")
+                        }else{
+                            pauseFunc(text: "not found this id")
+                        }
+                    }else{
+                        pauseFunc(text: "id must be Int")
+                    }
+                case "N","n":
+                    showCustomerPage()
+                default:
+                    pauseFunc(text: "wrong input please try again..")
+            }
+        }
+    }
+}
 
 //Customer Page
 
@@ -652,10 +874,10 @@ func shopping(){
                     let order = Order(custID: customerNow?.custID ?? 0)
                     loopBuy:repeat{
                         //show all Products
-                        showAll(items: products.getAllItems())
+                        showAll(items: company.getShopByID(id: 1)!.products.getAllItems())
                         print("Enter product ID:")
                         if let productID = Int(readLine()!) {
-                            if let product = products.searchID(id: productID) {
+                            if let product = company.getShopByID(id: 1)!.products.searchID(id: productID) {
                                 if product.checkQuantity(){
                                     print("Enter Quantity: ")
                                     if let quantity = Int(readLine()!){
@@ -683,7 +905,7 @@ func shopping(){
                                 case "y","Y":
                                     continue loopBuy
                                 case "n","N":
-                                    orders.add(item: order)
+                                    company.getShopByID(id: 1)!.orders.add(item: order)
                                     break buy
                                 default:
                                     print("wrong input")
@@ -721,7 +943,7 @@ func logAndRegisPage(){
         }
     }
 }
-var customerNow:Customer?
+var customerNow:Shop.Customer?
 var employeeNow:Employee?
 
 func loginCustomer(){
@@ -733,7 +955,7 @@ func loginCustomer(){
         print("+-----------------+")
         print("Enter User: ",terminator: "")
         if let userName = readLine(){
-            if let user = customers.searchName(name: userName){
+            if let user = company.getShopByID(id: 1)!.customers.searchName(name: userName){
                 print("Enter password:",terminator: "")
                 if let password = readLine(){
                     if user.checkPassword(pass: password){
@@ -774,7 +996,7 @@ func register(){
                     if let input = readLine(){
                         switch input{
                             case "Y","y":
-                                customers.add(item: Customer(name: name, age: age, password: password))
+                                company.getShopByID(id: 1)!.customers.add(item: Shop.Customer(name: name, age: age, password: password))
                                 pauseFunc(text: "register complete")
                                 logAndRegisPage()
                             case "N","n":
@@ -826,7 +1048,7 @@ func customerMainPage(){
                     shopping()
                 case "2":
                     print("Orders #\(customerNow?.custID ?? 0)")
-                    showOrderByCustID(orders: orders.getAllItems(), id: customerNow?.custID ?? 0)
+                    showOrderByCustID(orders: company.getShopByID(id: 1)!.orders.getAllItems(), id: customerNow?.custID ?? 0)
                     pauseFunc(text: "")
                 case "3":
                     customerNow?.show()
