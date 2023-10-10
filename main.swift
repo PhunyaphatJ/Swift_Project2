@@ -75,8 +75,24 @@ class Employee:Person{
         self.init(name:name,age:nil,salary:salary,isManager: false,password: password)
     }
 
-    override func show(){
-        print("ID: \(id) name: \(name) age: \(age != nil ? "\(age!)" : "nil") salary: \(salary)")
+    static func employeeShowhead(){
+            print("+------------------------------------------------------------------------------+")
+            print("|  ID  |         Name         |  age  |   salary  |   Manager  |   Department  |")
+            print("+------------------------------------------------------------------------------+")
+    }
+
+    override func show(){ 
+        let space1 = "".padding(toLength: 2, withPad: " ", startingAt: 0)
+        let idP = "\(id)".padding(toLength: 4, withPad: " ", startingAt: 0)
+        let space2 = "".padding(toLength: 5, withPad: " ", startingAt: 0)
+        let nameP = "\(name)".padding(toLength: 17, withPad: " ", startingAt: 0)
+        let space3 = "".padding(toLength: 3, withPad: " ", startingAt: 0)
+        let ageP = "\(age != nil ? "\(age!)" : "nil")".padding(toLength: 4, withPad: " ", startingAt: 0)
+        let space4 = "".padding(toLength: 3, withPad: " ", startingAt: 0)
+        let salaryP = "\(salary)".padding(toLength: 8, withPad: " ", startingAt: 0)
+        let space5 = "".padding(toLength: 6, withPad: " ", startingAt: 0)
+        let managerP = "\(isManager ? "✓" : "x")".padding(toLength: 6, withPad: " ", startingAt: 0)
+        print("|\(space1)\(idP)|\(space2)\(nameP)|\(space3)\(ageP)|\(space4)\(salaryP)|\(space5)\(managerP)|",terminator: "")
     }
 
     func checkPassword(password:String) -> Bool{
@@ -95,6 +111,13 @@ class Seller:Employee{
         super.init(name: name, age: age, salary: salary,isManager: isManager,password: password)
     }
 
+    override func show(){
+        super.show()
+        let space = "".padding(toLength: 3, withPad: " ", startingAt: 0)
+        let sellerP = "Seller".padding(toLength: 10, withPad: " ", startingAt: 0)
+        print(space,sellerP,"|")
+    }
+
 }
 
 class IT:Employee{
@@ -102,6 +125,13 @@ class IT:Employee{
 
     override init(name:String,age:Int?,salary:Double,isManager:Bool,password:String){
         super.init(name: name, age: age, salary: salary, isManager: isManager,password: password)
+    }
+
+    override func show(){
+        super.show()
+        let space = "".padding(toLength: 3, withPad: " ", startingAt: 0)
+        let sellerP = "IT".padding(toLength: 10, withPad: " ", startingAt: 0)
+        print(space,sellerP,"|")
     }
     
 }
@@ -111,6 +141,13 @@ class Account:Employee{
 
     override init(name:String,age:Int?,salary:Double,isManager:Bool,password:String){
         super.init(name: name, age: age, salary: salary, isManager: isManager,password: password)
+    }
+
+      override func show(){
+        super.show()
+        let space = "".padding(toLength: 3, withPad: " ", startingAt: 0)
+        let sellerP = "Accounter".padding(toLength: 10, withPad: " ", startingAt: 0)
+        print(space,sellerP,"|")
     }
 }
 
@@ -428,7 +465,11 @@ categoires.add(item: Category(name: "Electronic"))
 let company = Company()
 company.addEmployee(employee: Seller(name: "Seller Manger", age: 30, salary: 50000,isManager: true,password: "1234"))
 company.addEmployee(employee: Seller(name: "Seller1", age: 30, salary: 25000,isManager: false,password: "4321"))
-company.addEmployee(employee: Employee(name: "Admin", salary: 30000, password: "1234"))
+company.addEmployee(employee: IT(name: "Admin", salary: 30000, password: "1234"))
+company.addEmployee(employee: IT(name: "IT Manager", age: 40, salary: 50000, isManager: true, password: "7777"))
+company.addEmployee(employee: IT(name: "IT1", age: 25, salary: 25000, isManager: false, password: "1111"))
+company.addEmployee(employee: Account(name: "Account Manager", age: 50, salary: 60000, isManager: true, password: "abcde"))
+company.addEmployee(employee: Account(name: "Account1", age: 30, salary: 30000, isManager: false, password: "jaja"))
 
 
 company.addShop(shop: Shop())
@@ -475,6 +516,8 @@ func showAll<T>(items:[T]){
             print("+-----------------------------------------+")
         case is [Shop.Customer]:
             Shop.Customer.customerShowHead()
+        case is [Employee]:
+            Employee.employeeShowhead()
         default:
             print("wrong")
     }
@@ -490,7 +533,14 @@ func showAll<T>(items:[T]){
             employee.show()
         }
     }
-    print("+-----------------------------------------+")
+    switch items{
+        case is [Employee]:
+            print("+------------------------------------------------------------------------------+")
+        case is [Shop.Customer]:
+            print("+-----------------------------------------+")
+        default:
+            print("")
+    }
 }
 
 
@@ -785,6 +835,9 @@ func addProduct(){
 func restockPage(){
     while true{
         system("clear")
+        var copyProducts = company.getShopByID(id: 1)!.products.getAllItems()
+        copyProducts.sort(by: {$0.quantity < $1.quantity})
+        showAll(items: copyProducts)
         print("Do You want to Restock (Y:N) : ",terminator: "")
         if let input = readLine(){
             switch input{
@@ -801,9 +854,6 @@ func restockPage(){
 
 func restock(){
     while true{
-        var copyProducts = company.getShopByID(id: 1)!.products.getAllItems()
-        copyProducts.sort(by: {$0.quantity < $1.quantity})
-        showAll(items: copyProducts)
         print("")
         print("Product ID : ",terminator: "")
         if let id = Int(readLine()!){
