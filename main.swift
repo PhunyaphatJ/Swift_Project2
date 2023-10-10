@@ -689,9 +689,11 @@ func addEmployee(name:String,age:Int?,salary:Double,password:String){
 
 func showEmployeePage(){
     while true{
+        system("clear")
         print("1.Show All")
         print("2.Show By ID")
         print("3.Show By Name")
+        print("4.Exit")
         print("----------------")
         print("Enter : ",terminator: "")
         if let input = readLine(){
@@ -699,12 +701,53 @@ func showEmployeePage(){
                 case "1":
                     showAll(items: company.employees.getAllItems())
                     pauseFunc(text: "")
+                    system("clear")
                 case "2":
-                    print("by id")
+                    employeeShowByIDPage()
                 case "3":
-                    print("by Name")
+                    employeeShowByNamePage()
+                case "4":
+                    adminMainPage()
                 default:
                     pauseFunc(text: "wrong input please try again..")
+            }
+        }
+    }
+}
+
+func employeeShowByIDPage(){
+    while true{
+        system("clear")
+        print("Enter ID : ",terminator: "")
+        if let id = Int(readLine()!){
+            if let employee = company.employees.searchID(id: id){
+                Employee.employeeShowhead()
+                employee.show()
+                print("+------------------------------------------------------------------------------+")
+                pauseFunc(text: "")
+                showEmployeePage()
+            }else{
+                pauseFunc(text: "not found this ID")
+            }
+        }else{
+            pauseFunc(text: "id must be Int")
+        }
+    }
+}
+
+func employeeShowByNamePage(){
+     while true{
+        system("clear")
+        print("Enter Name : ",terminator: "")
+        if let name = readLine(){
+            if let employee = company.employees.searchName(name: name){
+                Employee.employeeShowhead()
+                employee.show()
+                print("+------------------------------------------------------------------------------+")
+                pauseFunc(text: "")
+                showEmployeePage()
+            }else{
+                pauseFunc(text: "not found this Name")
             }
         }
     }
