@@ -3,9 +3,7 @@ import Foundation;
 //class
 class Company{
     static var id = 0
-    // var employees = Store<Employee>()
     var employees:[Employee] = []
-    // var shops = Store<Shop>()
     var shops:[Shop] = []
 
     var countEmployee:Int{employees.count}
@@ -215,7 +213,7 @@ class Order{
     var orderDetails:[(product:Product,quantity:Int,total:Double)] = []
     var total:Double{
         return orderDetails.reduce(0) {(result,item)in
-            return result + (Double(item.quantity) * item.product.price)
+            return result + (Double(item.quantity) * item.product.priceTax)
         }
     }   
 
@@ -229,10 +227,10 @@ class Order{
     func buy(item:Product,quantity:Int){
         if let index = orderDetails.firstIndex(where: {$0.product.productID == item.productID}){
             orderDetails[index].quantity += quantity
-            orderDetails[index].total += (item.price * Double(quantity))
+            orderDetails[index].total += (item.priceTax * Double(quantity))
             item.quantity -= quantity
         }else{
-            orderDetails.append((product:item,quantity:quantity,total:item.price * Double(quantity)))
+            orderDetails.append((product:item,quantity:quantity,total:item.priceTax * Double(quantity)))
             item.quantity -= quantity
         }
     }
@@ -253,11 +251,11 @@ class Order{
             let space1 = "".padding(toLength: 4, withPad: " ", startingAt: 0)
             let pID = "\(space1)\(item.product.productID)".padding(toLength: 10, withPad: " ", startingAt: 0)
             let pQuantity = "\(space1)\(item.quantity)".padding(toLength: 10, withPad: " ", startingAt: 0)
-            let pTotal = "\(space1)\(item.total)".padding(toLength: 9, withPad: " ", startingAt: 0)
+            let pTotal = "\(space1)\(String(format: "%.2f",item.total))".padding(toLength: 9, withPad: " ", startingAt: 0)
             print("|\(space1)\(space1) | \(pID)|\(pQuantity)|\(pTotal)|")
             print("--------------------------------------------")
         }
-        let pTotal = "\(total)".padding(toLength: 20, withPad: " ", startingAt: 0)
+        let pTotal = "\(String(format: "%.2f",total))".padding(toLength: 20, withPad: " ", startingAt: 0)
         print("                               total: \(pTotal)")
         print("============================================")
     }
@@ -287,6 +285,10 @@ class Product{
     var name:String
     var quantity:Int
     var price:Double
+    var priceTax:Double{
+        get{price * (1 + 0.07)}
+        set{price = newValue / (1 + 0.07)}
+    }
 
 
     init(name:String,quantity:Int,price:Double,categoID:Int){
@@ -333,7 +335,7 @@ class Product{
        let pID = "\(productID)".padding(toLength: 4, withPad: " ", startingAt: 0)
        let pName = name.padding(toLength: 10, withPad: " ", startingAt: 0)
        let pQuantity = "\(quantity)".padding(toLength: 14, withPad: " ", startingAt: 0)
-       let pPrice = "\(price)".padding(toLength: 9, withPad: " ", startingAt: 0)
+       let pPrice = "\(String(format: "%.2f",priceTax))".padding(toLength: 9, withPad: " ", startingAt: 0)
        print("|\(pID)|\(pName)|\(pQuantity)|\(pPrice)|")
        print("------------------------------------------")
     }
@@ -370,7 +372,7 @@ class Shop{
                     print("Your not a Member")
                     print("Discount 2%")
                 }
-                print("Total Price : \(total)")
+                print("Total Price : \(String(format: "%.2f",total))")
                 print("Enter Your Money :",terminator: "")
                     if let money = Double(readLine()!){
                         if money < total{
@@ -379,7 +381,7 @@ class Shop{
                             orders.append(order)
                             print("thank you for buying..")
                             let change = money - total
-                            pauseFunc(text: "\(change == 0 ? "" : "change : \(change)")")
+                            pauseFunc(text: "\(change == 0 ? "" : "change : \(String(format: "%.2f",change))")")
                             customerMainPage()
                         }
                     }else{
@@ -1420,6 +1422,7 @@ func customerMainPage(){
 }
 //
 func main(){
+    // company.getShopById(id: 1)?.products
     firstPage()
 }
 
