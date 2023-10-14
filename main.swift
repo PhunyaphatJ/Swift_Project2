@@ -50,7 +50,15 @@ class Company{
 
 
 class Person{
-    var name:String
+    var name:String {
+        willSet{
+            print("will set name : \(newValue)")
+        }
+
+        didSet{
+            print("before : \(oldValue) after : \(name)")
+        }
+    }
     var age:Int?
 
     init(name:String,age:Int?){
@@ -686,7 +694,8 @@ func adminMainPage(){
         print("1.Add new Employee")
         print("2.Dapartment")
         print("3.Show Employee")
-        print("4.logout")
+        print("4.Change Information")
+        print("5.logout")
         print("--------------------")
         print("Enter : ",terminator: "")
         if let input = readLine(){
@@ -698,6 +707,8 @@ func adminMainPage(){
                 case "3":
                     showEmployeePage()
                 case "4":
+                    changeInfoPage()
+                case "5":
                     firstPage()
                 default:
                     pauseFunc(text: "wrong input please try again..")
@@ -852,6 +863,56 @@ func employeeShowByNamePage(){
         }
     }
 }
+
+func changeInfoPage(){
+    while true{
+        system("clear")
+        print("Do you want to change Infomation (Y:N) : ",terminator: "")
+        if let input = readLine(){
+            switch input{
+                case "Y","y":
+                    changeName()
+                case "N","n":
+                    adminMainPage()
+                default:
+                    pauseFunc(text: "wrong input please try again..")
+            }
+        }
+    }
+}
+
+func changeName(){
+    while true{
+        print("Enter ID : ",terminator: "")
+        if let id = Int(readLine()!){
+            if let user = company.getEmployeeById(id: id){
+                print("Enter Name : ",terminator: "")
+                if let name = readLine(){
+                    print("Are u ok \(name) (Y:N) : ",terminator: "")
+                    if let input = readLine(){
+                        switch input{
+                            case "Y","y":
+                                user.name = name
+                                pauseFunc(text: "")
+                                adminMainPage()
+                            case "N","n":
+                                continue
+                            default:
+                                pauseFunc(text: "wrong input")  
+                        }
+                    }
+                }
+            }else{
+                pauseFunc(text: "not found this id")
+            }
+        }else{
+            pauseFunc(text: "ID must be Int")
+        }
+    }
+}
+
+
+//
 
 var sellerNow:Seller?
 func loginSeller(){
