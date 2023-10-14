@@ -1,6 +1,7 @@
 import Foundation;
 
-//class
+//class & struct
+
 class Company{
     static var id = 0
     var employees:[Employee] = []
@@ -270,6 +271,19 @@ class Order{
     
 }
 
+@propertyWrapper
+struct Upper{
+    private var itemString: String
+    var wrappedValue: String {
+        get { return itemString }
+        set { itemString = newValue.uppercased() }
+    }
+
+    init(wrappedValue: String){
+        self.itemString = wrappedValue.uppercased()
+    }
+}
+
 class Category{
     static private var count = 0
     let categoryID:Int
@@ -288,18 +302,17 @@ class Category{
 
 class Product{
     static private var count = 0
-    let productID:Int
-    var categoryID:Int
-    var name:String
-    var quantity:Int
-    var price:Double
-    var priceTax:Double{
-        get{price * (1 + 0.07)}
-        set{price = newValue / (1 + 0.07)}
+    let productID: Int
+    var categoryID: Int
+    @Upper var name: String 
+    var quantity: Int
+    var price: Double
+    var priceTax: Double {
+        get { price * (1 + 0.07) }
+        set { price = newValue / (1 + 0.07) }
     }
 
-
-    init(name:String,quantity:Int,price:Double,categoID:Int){
+    init(name: String, quantity: Int, price: Double, categoID: Int) {
         Product.count += 1
         self.productID = Product.count
         self.categoryID = categoID
