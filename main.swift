@@ -6,6 +6,14 @@ class Company{
     static var id = 0
     var employees:[Employee] = []
     var shops:[Shop] = []
+    subscript(index:Int)->Employee?{
+        get{employees[index]}
+        set{employees[index] = newValue!}
+    }
+
+    subscript(name:String)->Employee?{
+        get{self.getEmployeeByName(name: name)}
+    }
 
     var countEmployee:Int{employees.count}
 
@@ -225,7 +233,7 @@ class Order{
             return result + (Double(item.quantity) * item.product.priceTax)
         }
     }   
-
+  
     init(custID:Int){
         Order.count += 1
         self.orderID = Order.count
@@ -844,7 +852,7 @@ func employeeShowByIDPage(){
         system("clear")
         print("Enter ID : ",terminator: "")
         if let id = Int(readLine()!){
-            if let employee = company.getEmployeeById(id: id){
+            if let employee = company[id - 1]{
                 Employee.employeeShowhead()
                 employee.show()
                 print("+------------------------------------------------------------------------------+")
@@ -864,7 +872,7 @@ func employeeShowByNamePage(){
         system("clear")
         print("Enter Name : ",terminator: "")
         if let name = readLine(){
-            if let employee = company.getEmployeeByName(name: name){
+            if let employee = company[name]{
                 Employee.employeeShowhead()
                 employee.show()
                 print("+------------------------------------------------------------------------------+")
