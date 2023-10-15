@@ -70,7 +70,10 @@ class Person{
     }
     var age:Int?
 
-    init(name:String,age:Int?){
+    init?(name:String,age:Int?){
+        if name.isEmpty{
+            return nil
+        }
         self.name = name
         self.age = age
     }
@@ -90,7 +93,7 @@ class Employee:Person{
     var isManager:Bool
     var password:String
 
-    init(name:String,age:Int?,salary:Double,isManager:Bool,password:String){
+    init?(name:String,age:Int?,salary:Double,isManager:Bool,password:String){
         Company.id += 1
         self.id = Company.id
         self.salary = salary
@@ -100,7 +103,7 @@ class Employee:Person{
     }
 
 
-    convenience init(name:String,salary:Double,password:String){
+    convenience init?(name:String,salary:Double,password:String){
         self.init(name:name,age:nil,salary:salary,isManager: false,password: password)
     }
 
@@ -173,7 +176,7 @@ class Seller:Employee{
     override var departmentID:Int {10}
     static var countSeller = 0
 
-    override init(name:String,age:Int?,salary:Double,isManager:Bool,password:String){
+    override init!(name:String,age:Int?,salary:Double,isManager:Bool,password:String){
         Seller.countSeller += 1
         super.init(name: name, age: age, salary: salary,isManager: isManager,password: password)
     }
@@ -191,7 +194,7 @@ class IT:Employee{
     override var departmentID:Int{20}
     static var countIT = 0
 
-    override init(name:String,age:Int?,salary:Double,isManager:Bool,password:String){
+    override init!(name:String,age:Int?,salary:Double,isManager:Bool,password:String){
         IT.countIT += 1
         super.init(name: name, age: age, salary: salary, isManager: isManager,password: password)
     }
@@ -209,7 +212,7 @@ class Account:Employee{
     override var departmentID:Int{30}
     static var countAccount = 0
 
-    override init(name:String,age:Int?,salary:Double,isManager:Bool,password:String){
+    override init!(name:String,age:Int?,salary:Double,isManager:Bool,password:String){
         Account.countAccount += 1
         super.init(name: name, age: age, salary: salary, isManager: isManager,password: password)
     }
@@ -474,7 +477,7 @@ class Shop{
         var member:Tier
         // var orders:[Orders] = []
 
-        init(name:String,age:Int,password:String){
+        init?(name:String,age:Int,password:String){
             Customer.count += 1
             custID = Customer.count
             self.password = password
@@ -541,7 +544,7 @@ categoires.append(Category(name: "Electronic"))
 let company = Company()
 company.addEmployee(employee: Seller(name: "Seller Manger", age: 30, salary: 50000,isManager: true,password: "1234"))
 company.addEmployee(employee: Seller(name: "Seller1", age: 30, salary: 25000,isManager: false,password: "4321"))
-company.addEmployee(employee: IT(name: "Admin", salary: 30000, password: "1234"))
+company.addEmployee(employee: IT(name: "Admin", salary: 30000, password: "1234")!)
 company.addEmployee(employee: IT(name: "IT Manager", age: 40, salary: 50000, isManager: true, password: "7777"))
 company.addEmployee(employee: IT(name: "IT1", age: 25, salary: 25000, isManager: false, password: "1111"))
 company.addEmployee(employee: Account(name: "Account Manager", age: 50, salary: 60000, isManager: true, password: "abcde"))
@@ -569,8 +572,8 @@ company.getShopById(id: 1)?.orders.append(order1)
 company.getShopById(id: 1)?.orders.append(order2)
 
 //add Customers
-company.getShopById(id: 1)?.customers.append(Shop.Customer(name: "Customer1", age: 22, password: "1234"))
-company.getShopById(id: 1)?.customers.append(Shop.Customer(name: "Customer2", age: 32, password: "4321"))
+company.getShopById(id: 1)?.customers.append(Shop.Customer(name: "Customer1", age: 22, password: "1234")!)
+company.getShopById(id: 1)?.customers.append(Shop.Customer(name: "Customer2", age: 32, password: "4321")!)
 company.getShopById(id: 1)?.getCustomerById(id: 1)?.rankUp()
 
 //end data store
@@ -1437,9 +1440,13 @@ func register(){
                     if let input = readLine(){
                         switch input{
                             case "Y","y":
-                                company.getShopById(id: 1)!.customers.append(Shop.Customer(name: name, age: age, password: password))
-                                pauseFunc(text: "register complete")
-                                logAndRegisPage()
+                                if let customer = Shop.Customer(name: name, age: age, password: password){
+                                    company.getShopById(id: 1)!.customers.append(customer)
+                                    pauseFunc(text: "register complete")
+                                    logAndRegisPage()
+                                }
+                                pauseFunc(text: "cant register cuz name is empty")
+                                break register
                             case "N","n":
                                 continue register
                             default:
