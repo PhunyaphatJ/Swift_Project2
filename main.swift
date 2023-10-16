@@ -2,6 +2,8 @@ import Foundation;
 
 //class & struct
 
+
+
 class Company{
     static var id = 0
     var employees:[Employee] = []
@@ -57,9 +59,23 @@ class Company{
 
 }
 
+@propertyWrapper
+struct Upper{
+    private var itemString: String
+    private(set) var projectedValue:Int
+    var wrappedValue: String {
+        get { return itemString }
+        set { itemString = newValue.uppercased() }
+    }
+
+    init(wrappedValue: String){
+        self.itemString = wrappedValue.uppercased()
+        projectedValue = itemString.count
+    }
+}
 
 class Person{
-    var name:String {
+    @Upper var name:String {
         willSet{
             print("will set name : \(newValue)")
         }
@@ -69,18 +85,45 @@ class Person{
         }
     }
     var age:Int?
-
+    
     init?(name:String,age:Int?){
         if name.isEmpty{
             return nil
         }
+        if age == 0{
+            self.age = nil
+        }else{
+            self.age = age
+        }
         self.name = name
-        self.age = age
     }
 
     func show(){
         print("name:\(name) age\(age ?? 0)")
     }
+
+    deinit{
+        pauseFunc(text: "Delete \(name)")
+    }
+}
+
+
+struct Note{
+    var notes:[String] = []
+    subscript(index:Int)->String{
+        get{notes[index]}
+        set{notes[index] = newValue}
+    }
+    
+    mutating func addNote(note:String){
+        notes.append(note)
+        pauseFunc(text: "Add Complete")
+    }
+
+    func count()->Int{
+        return notes.count
+    }
+
 }
 
 
@@ -92,6 +135,7 @@ class Employee:Person{
     var salary:Double
     var isManager:Bool
     var password:String
+    lazy var notes = Note()
 
     init?(name:String,age:Int?,salary:Double,isManager:Bool,password:String){
         Company.id += 1
@@ -179,6 +223,10 @@ class Seller:Employee{
     override init!(name:String,age:Int?,salary:Double,isManager:Bool,password:String){
         Seller.countSeller += 1
         super.init(name: name, age: age, salary: salary,isManager: isManager,password: password)
+    }
+
+    convenience init(name:String,salary:Double,password:String){
+        self.init(name: name, age: nil, salary: salary, isManager: false, password: password)
     }
 
     override func show(){
@@ -282,19 +330,6 @@ class Order{
     
 }
 
-@propertyWrapper
-struct Upper{
-    private var itemString: String
-    var wrappedValue: String {
-        get { return itemString }
-        set { itemString = newValue.uppercased() }
-    }
-
-    init(wrappedValue: String){
-        self.itemString = wrappedValue.uppercased()
-    }
-}
-
 class Category{
     static private var count = 0
     let categoryID:Int
@@ -316,8 +351,8 @@ class Product{
     let productID: Int
     var categoryID: Int
     @Upper var name: String 
+    var price:Double
     var quantity: Int
-    var price: Double
     var priceTax: Double {
         get { price * (1 + 0.07) }
         set { price = newValue / (1 + 0.07) }
@@ -475,7 +510,6 @@ class Shop{
         let custID:Int
         var password:String
         var member:Tier
-        // var orders:[Orders] = []
 
         init?(name:String,age:Int,password:String){
             Customer.count += 1
@@ -518,6 +552,7 @@ class Shop{
             let memberP = "\(member)".padding(toLength: 11, withPad: " ", startingAt: 0)
             print("|\(space1)\(id)|\(space2)\(nameP)|\(space3)\(memberP)|")
         }
+
     }
 
     enum Tier:Int{
@@ -587,7 +622,7 @@ func showOrderByCustID(orders:[Order],id:Int){
   }
 }
 
-func showAll<T>(items:[T]){
+func showAll(items:[Any]){
     switch items{
         case is [Product]:
             print("+----------------------------------------+")
@@ -637,7 +672,10 @@ func showByDepartment(employees:[Employee],id:Int){
     print("+------------------------------------------------------------------------------+")
 }
 
-
+func trailingFunc(action:()->Void){
+    pauseFunc(text: "...")
+    action()
+}
 //func page
 func pauseFunc(text:String){
     print(text,terminator:"")
@@ -666,14 +704,14 @@ func firstPage(){
 func employeePage(){
     while true{
         system("clear")
-        print("1.For Admin")
+        print("1.For Employee")
         print("2.For Seller")
         if let input = readLine(){
             switch input{
                 case "1":
-                    loginAdmin()
+                    login()
                 case "2":
-                    loginSeller()
+                    login()
                 default:
                     pauseFunc(text: "wrong input please try again..")
                     continue
@@ -682,7 +720,8 @@ func employeePage(){
     }
 }
 
-func loginAdmin(){
+
+func login(){
     var counter = 0
      while true{
         system("clear")
@@ -694,9 +733,16 @@ func loginAdmin(){
             print("Enter password:",terminator: "")
             if let password = readLine(){
                 if let user = company.login(user: userName, password: password){
-                    if user.name == "Admin" && user.checkPassword(password: password){
+                    if user.name == "ADMIN" && user.checkPassword(password: password){
                         pauseFunc(text: "login successful..")
                         adminMainPage()
+                    }else if user.name == "SELLER1" || user.name == "SELLER2" && user.checkPassword(password: password){
+                        sellerNow = user as? Seller
+                        sellerMainPage()
+                    }  else if user.name != "ADMIN" && user.checkPassword(password: password){
+                        employeeNow = user
+                        pauseFunc(text: "login successful..")
+                        employeeMainPage()
                     }else{
                         pauseFunc(text: "incorrect user or password..")
                     }
@@ -747,18 +793,24 @@ func addEmployeePage(){
         print("Enter Name : ",terminator: "")
         if let name = readLine(){
             print("Enter Age : ",terminator: "")
-            if let age = Int(readLine()!){
-                print("Enter Salary : ",terminator: "")
-                if let salary = Double(readLine()!){
+            if let inputAge = readLine(){
+                    print("Enter Salary : ",terminator: "")
+                    if let salary = Double(readLine()!){
                     print("Enter Password : ",terminator: "")
                     if let password = readLine(){
-                        addEmployee(name: name, age: age, salary: salary, password: password)
-                    }
-                }else{
-                    pauseFunc(text: "salary Must be Double")
+                            if !inputAge.isEmpty{
+                                 if let age = Int(inputAge){
+                                    addEmployee(name: name, age: age, salary: salary, password: password)
+                                }else{
+                                    pauseFunc(text: "Age must be Int")
+                                 }
+                            }else{
+                                addEmployee(name: name, age: 0, salary: salary, password: password)
+                            }
+                        }
+                    }else{
+                         pauseFunc(text: "salary Must be Double")
                 }
-            }else{
-                pauseFunc(text: "age must be Int")
             }
         }
     }
@@ -916,7 +968,9 @@ func changeName(){
                     if let input = readLine(){
                         switch input{
                             case "Y","y":
-                                user.name = name
+                                trailingFunc {
+                                    user.name = name
+                                }
                                 pauseFunc(text: "")
                                 adminMainPage()
                             case "N","n":
@@ -935,40 +989,117 @@ func changeName(){
     }
 }
 
+//end Admin
 
-//
+//employee
+    func employeeMainPage(){
+        while true{
+            system("clear")
+            print("1.Profile")
+            print("2.Notes")
+            print("3.Logout")
+            print("Enter Input : ",terminator: "")
+            if let input = readLine(){
+                switch input{
+                    case "1":
+                        Employee.employeeShowhead()
+                        employeeNow?.show()
+                        pauseFunc(text: "--------------------------------------------------------------------------------")
+                    case "2":
+                        notePage()
+                    case "3":
+                        logout()
+                    default:
+                        pauseFunc(text: "wrong input please try again..")
 
-var sellerNow:Seller?
-func loginSeller(){
-    var counter = 0
-     while true{
-        system("clear")
-        print("+-----------------+")
-        print("|      Login      |")
-        print("+-----------------+")
-        print("Enter User: ",terminator: "")
-        if let userName = readLine(){
-            print("Enter password:",terminator: "")
-            if let password = readLine(){
-                if let user = company.login(user: userName, password: password){
-                    sellerNow = user as? Seller
-                    pauseFunc(text: "login successful..")
-                    sellerMainPage()
-                    break
-                }else{
-                    pauseFunc(text: "incorrect user or password..")
-                 }
                 }
             }
-            counter += 1
-            if counter == 3{
-                firstPage()
         }
     }
-}
 
-func logoutSeller(){
+    func notePage(){
+        while true{
+            system("clear")
+            print("1.Add Note")
+            print("2.Read Notes")
+            print("3.Exit")
+            print("Enter Input : ",terminator: "")
+            if let input = readLine(){
+                switch input {
+                    case "1":
+                        addNotePage()
+                    case "2":
+                        readNotesPage()
+                    case "3":
+                        employeeMainPage()
+                    default:
+                        pauseFunc(text: "wrong Input please try again..")
+                }
+            }
+        }
+    }
+
+    func addNotePage(){
+        while true{
+            system("clear")
+            print("Do you want to add note (Y:N) : ",terminator: "")
+            if let input = readLine(){
+                switch input{
+                    case "Y","y":
+                        print("Enter Note : ",terminator: "")
+                        if let note = readLine(){
+                            employeeNow?.notes.addNote(note: note)
+                            employeeMainPage()
+                        }
+                    case "N","n":
+                        employeeMainPage()
+                    default:
+                        pauseFunc(text: "wrong input please try again..")
+                }
+            }
+        }
+    }
+
+    func readNotesPage(){
+        if employeeNow?.notes.notes.isEmpty == nil{
+            pauseFunc(text: "note is empty cant read..")
+            employeeMainPage()
+        }
+        while true{
+            system("clear")
+             print("Do you want to Read note (Y:N) : ",terminator: "")
+               if let input = readLine(){
+                switch input{
+                    case "Y","y":
+                        print("Enter Note ID : ",terminator: "")
+                        if let noteID = Int(readLine()!){
+                           if let count = employeeNow?.notes.count(){
+                                if  noteID > count{
+                                    pauseFunc(text: "dont have this id")
+                                }else{
+                                    if let note = employeeNow?.notes[noteID - 1]{
+                                        pauseFunc(text: note)
+                                    }
+                                }
+                           }
+                           employeeMainPage()
+                        }
+                    case "N","n":
+                        employeeMainPage()
+                    default:
+                        pauseFunc(text: "wrong input please try again..")
+                }
+            }
+        }
+    }
+//end employee
+
+//seller
+
+var sellerNow:Seller?
+func logout(){
     sellerNow = nil
+    employeeNow = nil
     firstPage()
 }
 
@@ -1000,7 +1131,7 @@ func sellerMainPage(){
                 case "6":
                     toMembershipPage()
                 case "7":
-                    logoutSeller()
+                    logout()
                 default:
                     pauseFunc(text: "wrong input please try again..")
             }
@@ -1511,7 +1642,6 @@ func customerMainPage(){
 }
 //
 func main(){
-    // company.getShopById(id: 1)?.products
     firstPage()
 }
 
